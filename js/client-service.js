@@ -1,0 +1,80 @@
+// ============================================
+// CLIENT SERVICE — owner-side operations
+// Matches the schema in firebase-schema.md: clients/{id} core
+// record, with payments as a subcollection.
+// ============================================
+import { db } from "./firebase-config.js";
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Add a new client — owner flow: purpose → plan → finalize.
+// planDurationDays is used to compute expiryDate from joiningDate.
+export async function addClient({
+  name, phone, purpose, planName, planPrice, planDurationDays,
+  joiningDate, sessionTimePref, assignedTrainerId
+}) {
+  const expiry = new Date(joiningDate);
+  expiry.setDate(expiry.getDate() + planDurationDays);
+
+  const ref = await addDoc(collection(db, "clients"), {
+    name, phone, purpose, planName, planPrice,
+    joiningDate: Timestamp.fromDate(new Date(joiningDate)),
+    expiryDate: Timestamp.fromDate(expiry),
+    sessionTimePref,
+    assignedTrainerId,
+    createdAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+// Log a payment under a client (owner-only per security rules).
+export async function logPayment(clientId, { amount, method, note = "" }) {
+  await addDoc(collection(db, "clients", clientId, "payments"), {
+    amount, method, note,
+    date: serverTimestamp()
+  });
+}
+
+// All clients (owner dashboard / client list).
+export async function getAllClients() {
+  const snap = await getDocs(query(collection(db, "clients"), orderBy("createdAt", "desc")));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Clients assigned to one trainer (trainer's "My Clients" screen).
+export async function getClientsForTrainer(trainerId) {
+  const q = query(collection(db, "clients"), where("assignedTrainerId", "==", trainerId));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function getClient(clientId) {
+  const snap = await getDoc(doc(db, "clients", clientId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+export async function reassignTrainer(clientId, newTrainerId) {
+  await updateDoc(doc(db, "clients", clientId), { assignedTrainerId: newTrainerId });
+}
+
+// Derives active / expiring / expired from expiryDate — avoids a
+// stale "status" field that can drift out of sync with reality.
+export function getClientStatus(client) {
+  const daysLeft = Math.ceil(
+    (client.expiryDate.toDate() - new Date()) / (1000 * 60 * 60 * 24)
+  );
+  if (daysLeft < 0) return { status: "expired", daysLeft };
+  if (daysLeft <= 7) return { status: "expiring", daysLeft };
+  return { status: "active", daysLeft };
+}
