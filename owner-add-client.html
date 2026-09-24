@@ -196,42 +196,31 @@
     let currentStep = 1;
 
     // ---------- Step 1: purpose ----------
-    let purposesRendered = false;
     function renderPurposes() {
       const el = document.getElementById("purposeOptions");
       el.innerHTML = "";
-      PURPOSES.forEach((p, i) => {
+      PURPOSES.forEach((p) => {
         const card = document.createElement("div");
         card.className = "option-card" + (state.purpose === p.id ? " selected" : "");
-        if (!purposesRendered) {
-          card.classList.add("anim-row");
-          card.style.animationDelay = `${i * 60}ms`;
-        }
         card.innerHTML = `
-          <div class="option-icon">${p.img ? `<img src="${p.img}" alt="${p.label}">` : ''}</div>
+          <div class="option-icon">${p.img ? `<img src="${p.img}" alt="${p.label}" width="52" height="52" style="width:52px;height:52px;object-fit:contain;display:block;">` : ''}</div>
           <div class="option-label">${p.label}</div>
           <div class="radio-dot"></div>
         `;
         card.addEventListener("click", () => { state.purpose = p.id; renderPurposes(); });
         el.appendChild(card);
       });
-      purposesRendered = true;
     }
 
     // ---------- Step 2: plan ----------
-    let plansRendered = false;
     function renderPlans() {
       const el = document.getElementById("planOptions");
       el.innerHTML = "";
-      PLANS.forEach((p, i) => {
+      PLANS.forEach((p) => {
         const isRecommended = p.recommendedFor.includes(state.purpose);
         const isSelected = state.plan && state.plan.name === p.name;
         const card = document.createElement("div");
         card.className = "plan-card" + (isSelected ? " selected" : "");
-        if (!plansRendered) {
-          card.classList.add("anim-row");
-          card.style.animationDelay = `${i * 60}ms`;
-        }
         card.innerHTML = `
           <div>
             <div class="plan-name">${p.name} ${isRecommended ? '<span style="font-size:10px;font-weight:700;color:#f5871f;">★ RECOMMENDED</span>' : ''}</div>
@@ -249,7 +238,6 @@
         });
         el.appendChild(card);
       });
-      plansRendered = true;
     }
     document.querySelectorAll('.pill-row').forEach(row => {
       row.addEventListener("click", (e) => {
