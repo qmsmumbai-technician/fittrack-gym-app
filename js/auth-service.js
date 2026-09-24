@@ -7,6 +7,7 @@
 import { auth, db } from "./firebase-config.js?v=2";
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -17,6 +18,13 @@ import {
 
 export async function login(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
+
+// Creates a brand-new Firebase Auth account and signs them in as that user.
+// Used by trainer self-signup — no Firebase Console access needed.
+export async function signUp(email, password) {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
   return cred.user;
 }
 
