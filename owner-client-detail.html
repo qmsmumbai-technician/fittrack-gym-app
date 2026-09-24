@@ -47,9 +47,9 @@
   </main>
 
   <script type="module">
-    import { watchAuthState } from "./js/auth-service.js?v=2";
-    import { getClient, getPayments, getClientStatus } from "./js/client-service.js?v=2";
-    import { getIntake, getLatestPlan, getRecentAttendance } from "./js/trainer-service.js?v=2";
+    import { watchAuthState } from "./js/auth-service.js?v=4";
+    import { getClient, getPayments, getClientStatus } from "./js/client-service.js?v=4";
+    import { getIntake, getLatestPlan, getRecentAttendance } from "./js/trainer-service.js?v=4";
 
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get("clientId");
@@ -160,7 +160,11 @@
 
         document.getElementById("mainContent").innerHTML = html;
       } catch (err) {
-        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+        const linkified = err.message.replace(
+          /(https?:\/\/[^\s]+)/g,
+          '<a href="$1" target="_blank" style="color:#2b6fd1;text-decoration:underline;font-weight:600;word-break:break-all;">$1</a>'
+        );
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px 24px;text-align:center;color:#c1443c;'>Error: ${linkified}</p>`;
       }
     }
 
@@ -177,3 +181,4 @@
 
 </body>
 </html>
+
