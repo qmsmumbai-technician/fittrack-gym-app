@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Trainer — Attendance</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { background: #142850; padding: 18px 24px 16px; }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  header a.back { color: #fff; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; color: #fff; }
+  .today-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+  .today-label { font-family: 'Barlow Condensed'; font-weight: 600; font-size: 16px; color: #6b7688; }
+  .today-count { font-size: 13px; font-weight: 600; color: #2e9c5a; background: #e5f3ec; padding: 5px 12px; border-radius: 20px; }
+  main { padding: 0 24px 30px; max-width: 480px; margin: 0 auto; }
+
+  .client-row { background: #fff; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center;
+    gap: 12px; margin-bottom: 10px; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: #dbe4ff; display: flex;
+    align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 700;
+    font-size: 14px; flex-shrink: 0; }
+  .client-name { font-weight: 500; font-size: 14.5px; }
+  .client-meta { font-size: 11.5px; color: #6b7688; }
+  .status-in { color: #f5871f; }
+  .status-done { color: #6b7688; }
+
+  .btn { font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; border: none; cursor: pointer; margin-left: auto; }
+  .btn-in { color: #142850; background: #eef1f6; }
+  .btn-out { color: #fff; background: #f5871f; }
+  .btn-done { color: #2e9c5a; background: #e5f3ec; }
+  .btn:disabled { opacity: .6; }
+
+  .loading, .empty { text-align: center; color: #6b7688; font-size: 14px; padding: 30px 0; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <a href="trainer-dashboard.html" class="back" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="title">My Attendance</div>
+    </div>
+  </header>
+
+  <div class="today-row">
+    <div class="today-label" id="todayLabel">TODAY</div>
+    <div class="today-count" id="todayCount">–</div>
+  </div>
+
+  <main>
+    <div id="clientList" class="loading">Loading clients...</div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js";
+    import { getClientsForTrainer } from "./js/client-service.js";
+    import { getTodayAttendance, markCheckIn, markCheckOut } from "./js/trainer-service.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    document.getElementById("todayLabel").textContent =
+      "TODAY · " + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toUpperCase();
+
+    function initials(name) {
+      return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    function fmtTime(ts) {
+      if (!ts) return "";
+      return ts.toDate().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    async function renderRow(client, trainerId) {
+      const att = await getTodayAttendance(client.id);
+      const row = document.createElement("div");
+      row.className = "client-row";
+
+      let statusHtml, buttonHtml;
+      if (!att || !att.checkInTime) {
+        statusHtml = `<div class="client-meta">Not checked in yet</div>`;
+        buttonHtml = `<button class="btn btn-in" data-action="in" data-client="${client.id}">Mark In</button>`;
+      } else if (!att.checkOutTime) {
+        statusHtml = `<div class="client-meta status-in">Checked in: ${fmtTime(att.checkInTime)} · still in session</div>`;
+        buttonHtml = `<button class="btn btn-out" data-action="out" data-client="${client.id}">Mark Out</button>`;
+      } else {
+        statusHtml = `<div class="client-meta status-done">In: ${fmtTime(att.checkInTime)} · Out: ${fmtTime(att.checkOutTime)}</div>`;
+        buttonHtml = `<div class="btn btn-done">✓ Done</div>`;
+      }
+
+      row.innerHTML = `
+        <div class="avatar">${initials(client.name)}</div>
+        <div>
+          <div class="client-name">${client.name}</div>
+          ${statusHtml}
+        </div>
+        ${buttonHtml}
+      `;
+
+      const btn = row.querySelector("button[data-action]");
+      if (btn) {
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          try {
+            if (btn.dataset.action === "in") {
+              await markCheckIn(client.id, trainerId);
+            } else {
+              await markCheckOut(client.id);
+            }
+            await refresh();
+          } catch (err) {
+            alert("Error: " + err.message);
+            btn.disabled = false;
+          }
+        });
+      }
+
+      return row;
+    }
+
+    let clients = [];
+
+    async function refresh() {
+      const listEl = document.getElementById("clientList");
+      const trainerId = getAuth().currentUser.uid;
+
+      if (clients.length === 0) {
+        listEl.className = "empty";
+        listEl.textContent = "No clients assigned to you yet.";
+        document.getElementById("todayCount").textContent = "0 of 0";
+        return;
+      }
+
+      listEl.className = "";
+      listEl.innerHTML = "";
+      let checkedIn = 0;
+
+      for (const client of clients) {
+        const row = await renderRow(client, trainerId);
+        listEl.appendChild(row);
+        const att = await getTodayAttendance(client.id);
+        if (att && att.checkInTime) checkedIn++;
+      }
+
+      document.getElementById("todayCount").textContent = `${checkedIn} of ${clients.length} checked in`;
+    }
+
+    watchAuthState(async (session) => {
+      if (!session) { window.location.href = "trainer-login.html"; return; }
+      if (session.role !== "trainer") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Trainer access only.</p>";
+        return;
+      }
+      try {
+        clients = await getClientsForTrainer(session.user.uid);
+        await refresh();
+      } catch (err) {
+        document.getElementById("clientList").textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
