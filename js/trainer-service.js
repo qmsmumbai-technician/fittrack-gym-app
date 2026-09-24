@@ -4,7 +4,7 @@
 // All writes here only succeed if request.auth.uid matches the
 // client's assignedTrainerId (enforced in firestore.rules).
 // ============================================
-import { db } from "./firebase-config.js";
+import { db } from "./firebase-config.js?v=2";
 import {
   collection,
   doc,

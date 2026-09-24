@@ -4,7 +4,7 @@
 // user is the Owner or a Trainer (by checking which collection
 // their UID exists in — see firebase-schema.md).
 // ============================================
-import { auth, db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js?v=2";
 import {
   signInWithEmailAndPassword,
   signOut,

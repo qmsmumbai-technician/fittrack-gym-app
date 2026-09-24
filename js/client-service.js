@@ -3,7 +3,7 @@
 // Matches the schema in firebase-schema.md: clients/{id} core
 // record, with payments as a subcollection.
 // ============================================
-import { db } from "./firebase-config.js";
+import { db } from "./firebase-config.js?v=2";
 import {
   collection,
   doc,
