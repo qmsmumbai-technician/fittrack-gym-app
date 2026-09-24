@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FitTrack Trainer — Login</title>
+<title>FitTrack Trainer — Sign Up</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; background: #0d1b33;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: 'Barlow', system-ui, sans-serif; color: #fff; padding: 0 32px;
+    font-family: 'Barlow', system-ui, sans-serif; color: #fff; padding: 40px 32px;
   }
-  .logo { width: 68px; height: 68px; border-radius: 18px; background: #f5871f;
+  .logo { width: 60px; height: 60px; border-radius: 16px; background: #f5871f;
     display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
   h1 { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 24px; margin: 0; }
-  .sub { font-size: 12.5px; color: #9db0cf; margin-top: 2px; margin-bottom: 28px; }
+  .sub { font-size: 12.5px; color: #9db0cf; margin-top: 2px; margin-bottom: 28px; text-align: center; }
   form { width: 100%; max-width: 340px; }
   label { font-size: 12.5px; font-weight: 600; color: #9db0cf; display: block; margin-top: 14px; }
   input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
@@ -26,6 +26,8 @@
     cursor: pointer; }
   button:disabled { opacity: .6; cursor: default; }
   .error { color: #ff9d94; font-size: 13px; margin-top: 14px; text-align: center; display: none; }
+  .login-link { text-align: center; font-size: 12.5px; color: #9db0cf; margin-top: 18px; }
+  .login-link a { color: #fff; font-weight: 600; text-decoration: none; }
 
   /* ===== fancy animations ===== */
   @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
@@ -33,7 +35,8 @@
   @keyframes spin { to { transform:rotate(360deg); } }
   @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
   @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
-  body { animation: fadeInUp .4s ease; animation-fill-mode: none; }
+  body { animation: fadeInUp .4s ease;
+  animation-fill-mode: none; }
   button, a { -webkit-tap-highlight-color: transparent; }
   button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
     transition: transform .12s ease, box-shadow .12s ease;
@@ -59,62 +62,70 @@
 <body>
 
   <div class="logo">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
   </div>
-  <h1>FitTrack Trainer</h1>
-  <div class="sub">View your assigned clients &amp; sessions</div>
+  <h1>Join as a Trainer</h1>
+  <div class="sub">Create your account — no setup needed from the gym owner</div>
 
-  <form id="loginForm">
+  <form id="signupForm">
+    <label for="name">FULL NAME</label>
+    <input id="name" placeholder="Your name" required>
+
+    <label for="phone">PHONE</label>
+    <input id="phone" placeholder="10-digit mobile number" required>
+
     <label for="email">EMAIL</label>
     <input id="email" type="email" placeholder="you@email.com" required autocomplete="username">
 
     <label for="password">PASSWORD</label>
-    <input id="password" type="password" placeholder="Enter password" required autocomplete="current-password">
+    <input id="password" type="password" placeholder="Create a password (6+ characters)" required autocomplete="new-password">
 
-    <button id="loginBtn" type="submit">Login</button>
+    <button id="signupBtn" type="submit">Create Account</button>
     <div id="error" class="error"></div>
   </form>
 
-  <div style="text-align:center;font-size:12.5px;color:#9db0cf;margin-top:18px;">New trainer? <a href="trainer-signup.html" style="color:#fff;font-weight:600;text-decoration:none;">Create an account</a></div>
+  <div class="login-link">Already have an account? <a href="trainer-login.html">Log in</a></div>
 
   <script type="module">
-    import { login, getCurrentRole } from "./js/auth-service.js?v=2";
+    import { signUp } from "./js/auth-service.js?v=2";
+    import { addTrainerRecord } from "./js/client-service.js?v=2";
 
-    const form = document.getElementById("loginForm");
-    const btn = document.getElementById("loginBtn");
+    const form = document.getElementById("signupForm");
+    const btn = document.getElementById("signupBtn");
     const errorEl = document.getElementById("error");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorEl.style.display = "none";
-      btn.disabled = true;
-      btn.textContent = "Logging in...";
 
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
 
-      try {
-        const user = await login(email, password);
-        const { role } = await getCurrentRole(user.uid);
+      if (!name || !phone) {
+        errorEl.textContent = "Please enter your name and phone number.";
+        errorEl.style.display = "block";
+        return;
+      }
 
-        if (role === "trainer") {
-          window.location.href = "trainer-dashboard.html";
-        } else if (role === "owner") {
-          errorEl.textContent = "This account is registered as the Owner, not a Trainer.";
-          errorEl.style.display = "block";
-          btn.disabled = false;
-          btn.textContent = "Login";
-        } else {
-          errorEl.textContent = "This account has no role assigned. Ask the gym owner to add you as a trainer.";
-          errorEl.style.display = "block";
-          btn.disabled = false;
-          btn.textContent = "Login";
-        }
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+
+      try {
+        const user = await signUp(email, password);
+        // Now signed in as the new trainer — write their own profile doc.
+        await addTrainerRecord(user.uid, { name, phone });
+        window.location.href = "trainer-dashboard.html";
       } catch (err) {
-        errorEl.textContent = "Error: " + err.code + " — " + err.message;
+        let msg = err.message;
+        if (err.code === "auth/email-already-in-use") msg = "That email is already registered — try logging in instead.";
+        if (err.code === "auth/weak-password") msg = "Password should be at least 6 characters.";
+        if (err.code === "auth/invalid-email") msg = "Please enter a valid email address.";
+        errorEl.textContent = msg;
         errorEl.style.display = "block";
         btn.disabled = false;
-        btn.textContent = "Login";
+        btn.textContent = "Create Account";
       }
     });
   </script>
