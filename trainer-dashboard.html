@@ -28,6 +28,34 @@
   .badge.expiring { color: #c9862c; background: #fdf1de; }
   .badge.expired { color: #c1443c; background: #fbe4e2; }
   .empty, .loading { text-align: center; color: #6b7688; font-size: 14px; padding: 30px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease both; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
 </style>
 </head>
 <body>
@@ -42,7 +70,7 @@
 
   <main>
     <div class="section-title">MY CLIENTS</div>
-    <div id="clientList" class="loading">Loading clients...</div>
+    <div id="clientList" class="loading"><div class="spinner"></div>Loading clients...</div>
   </main>
 
   <script type="module">
@@ -70,7 +98,7 @@
       listEl.className = "";
       listEl.innerHTML = "";
 
-      clients.forEach(client => {
+      clients.forEach((client, i) => {
         const { status, daysLeft } = getClientStatus(client);
         const badgeText = status === "expired" ? "Expired"
           : status === "expiring" ? `${daysLeft}d left`
@@ -80,7 +108,8 @@
         row.href = `trainer-client-intake.html?clientId=${client.id}`;
         row.style.textDecoration = "none";
         row.style.color = "inherit";
-        row.className = "client-row";
+        row.className = "client-row anim-row";
+        row.style.animationDelay = `${i * 60}ms`;
         row.innerHTML = `
           <div class="avatar">${initials(client.name)}</div>
           <div>

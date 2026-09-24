@@ -15,7 +15,14 @@
   main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
 
   .day-row { background: #fff; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center;
-    gap: 12px; margin-top: 8px; }
+    gap: 12px; margin-top: 8px; opacity:0; animation: fadeInUp .35s ease forwards; }
+  .day-row:nth-of-type(1) { animation-delay: .03s; }
+  .day-row:nth-of-type(2) { animation-delay: .08s; }
+  .day-row:nth-of-type(3) { animation-delay: .13s; }
+  .day-row:nth-of-type(4) { animation-delay: .18s; }
+  .day-row:nth-of-type(5) { animation-delay: .23s; }
+  .day-row:nth-of-type(6) { animation-delay: .28s; }
+  .day-row:nth-of-type(7) { animation-delay: .33s; }
   .day-label { width: 34px; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 15px; flex-shrink: 0; }
   .day-row input { flex: 1; border: none; outline: none; font-size: 14px; font-family: 'Barlow'; color: #3a4658; background: transparent; padding: 6px 0; }
 
@@ -33,6 +40,34 @@
   button.primary:disabled { opacity: .6; }
   .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
   .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease both; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
 </style>
 </head>
 <body>
@@ -48,7 +83,7 @@
   </header>
 
   <main id="mainContent">
-    <div class="loading">Loading client...</div>
+    <div class="loading"><div class="spinner"></div>Loading client...</div>
   </main>
 
   <div class="bottom-bar" id="bottomBar" style="display:none;">

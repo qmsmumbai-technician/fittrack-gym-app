@@ -12,12 +12,12 @@
   header a, header .back { color: #142850; text-decoration: none; display: flex; cursor: pointer; background: none; border: none; padding: 0; }
   .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
   .progress { padding: 0 24px 8px; display: flex; gap: 6px; }
-  .progress .bar { flex: 1; height: 4px; border-radius: 4px; background: #e2e6ee; }
+  .progress .bar { flex: 1; height: 4px; border-radius: 4px; background: #e2e6ee; transition: background-color .35s ease; }
   .progress .bar.done { background: #f5871f; }
   .step-label { padding: 0 24px 16px; font-size: 12px; color: #6b7688; }
   main { padding: 0 24px 110px; max-width: 480px; margin: 0 auto; }
   .step { display: none; }
-  .step.active { display: block; }
+  .step.active { display: block; animation: fadeInUp .3s ease; }
 
   label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 14px; }
   input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
@@ -62,6 +62,34 @@
   button.primary:disabled { opacity: .6; }
   .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
   .empty-note { font-size: 13px; color: #6b7688; padding: 12px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease both; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
 </style>
 </head>
 <body>
@@ -167,12 +195,17 @@
     let currentStep = 1;
 
     // ---------- Step 1: purpose ----------
+    let purposesRendered = false;
     function renderPurposes() {
       const el = document.getElementById("purposeOptions");
       el.innerHTML = "";
-      PURPOSES.forEach(p => {
+      PURPOSES.forEach((p, i) => {
         const card = document.createElement("div");
         card.className = "option-card" + (state.purpose === p.id ? " selected" : "");
+        if (!purposesRendered) {
+          card.classList.add("anim-row");
+          card.style.animationDelay = `${i * 60}ms`;
+        }
         card.innerHTML = `
           <div class="option-icon"></div>
           <div class="option-label">${p.label}</div>
@@ -181,17 +214,23 @@
         card.addEventListener("click", () => { state.purpose = p.id; renderPurposes(); });
         el.appendChild(card);
       });
+      purposesRendered = true;
     }
 
     // ---------- Step 2: plan ----------
+    let plansRendered = false;
     function renderPlans() {
       const el = document.getElementById("planOptions");
       el.innerHTML = "";
-      PLANS.forEach(p => {
+      PLANS.forEach((p, i) => {
         const isRecommended = p.recommendedFor.includes(state.purpose);
         const isSelected = state.plan && state.plan.name === p.name;
         const card = document.createElement("div");
         card.className = "plan-card" + (isSelected ? " selected" : "");
+        if (!plansRendered) {
+          card.classList.add("anim-row");
+          card.style.animationDelay = `${i * 60}ms`;
+        }
         card.innerHTML = `
           <div>
             <div class="plan-name">${p.name} ${isRecommended ? '<span style="font-size:10px;font-weight:700;color:#f5871f;">★ RECOMMENDED</span>' : ''}</div>
@@ -209,9 +248,8 @@
         });
         el.appendChild(card);
       });
+      plansRendered = true;
     }
-
-    // ---------- Step 3: finalize ----------
     document.querySelectorAll('.pill-row').forEach(row => {
       row.addEventListener("click", (e) => {
         const pill = e.target.closest(".pill");
