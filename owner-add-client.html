@@ -23,11 +23,12 @@
   input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
     border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
 
-  .option-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 12px; padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px; margin-top: 10px; cursor: pointer; }
+  .option-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 12px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 14px; margin-top: 10px; cursor: pointer; }
   .option-card.selected { border-color: #f5871f; }
-  .option-icon { width: 38px; height: 38px; border-radius: 10px; background: #eef1f6; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; }
+  .option-icon { width: 52px; height: 52px; border-radius: 12px; background: #eef1f6; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .option-icon img { width: 100%; height: 100%; object-fit: contain; }
   .option-card.selected .option-icon { background: #fdeee0; }
   .option-label { flex: 1; font-size: 14.5px; font-weight: 500; }
   .radio-dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #c7cede; flex-shrink: 0; }
@@ -169,8 +170,8 @@
     import { addClient, logPayment, getAllTrainers } from "./js/client-service.js?v=2";
 
     const PURPOSES = [
-      { id: "weight_loss", label: "Weight Loss" },
-      { id: "muscle_gain", label: "Muscle Gain" },
+      { id: "weight_loss", label: "Weight Loss", img: "icons/goal-weight-loss.png" },
+      { id: "muscle_gain", label: "Muscle Gain", img: "icons/goal-muscle-gain.png" },
       { id: "general_fitness", label: "General Fitness" },
       { id: "strength_training", label: "Strength Training" },
       { id: "rehab", label: "Rehab / Recovery" }
@@ -207,7 +208,7 @@
           card.style.animationDelay = `${i * 60}ms`;
         }
         card.innerHTML = `
-          <div class="option-icon"></div>
+          <div class="option-icon">${p.img ? `<img src="${p.img}" alt="${p.label}">` : ''}</div>
           <div class="option-label">${p.label}</div>
           <div class="radio-dot"></div>
         `;
