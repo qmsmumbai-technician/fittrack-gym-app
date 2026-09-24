@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Trainer — My Clients</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { background: #142850; padding: 20px 24px 22px; display: flex; align-items: center; justify-content: space-between; }
+  header .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; color: #fff; }
+  header .sub { font-size: 12px; color: #9db0cf; }
+  #logoutBtn { background: rgba(255,255,255,.1); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 14px; font-family: 'Barlow'; font-size: 12.5px; cursor: pointer; }
+  main { padding: 20px 24px 40px; max-width: 480px; margin: 0 auto; }
+  .section-title { font-family: 'Barlow Condensed'; font-weight: 600; font-size: 16px; color: #6b7688;
+    margin-bottom: 10px; }
+  .client-row { background: #fff; border-radius: 14px; padding: 12px 14px; display: flex;
+    align-items: center; gap: 12px; margin-bottom: 10px; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: #dbe4ff; display: flex;
+    align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 700;
+    font-size: 14px; flex-shrink: 0; }
+  .client-name { font-weight: 500; font-size: 14.5px; }
+  .client-meta { font-size: 11.5px; color: #6b7688; margin-top: 1px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; margin-left: auto; }
+  .badge.active { color: #2e9c5a; background: #e5f3ec; }
+  .badge.expiring { color: #c9862c; background: #fdf1de; }
+  .badge.expired { color: #c1443c; background: #fbe4e2; }
+  .empty, .loading { text-align: center; color: #6b7688; font-size: 14px; padding: 30px 0; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="title" id="trainerName">Loading...</div>
+      <div class="sub">My Assigned Clients</div>
+    </div>
+    <button id="logoutBtn">Logout</button>
+  </header>
+
+  <main>
+    <div class="section-title">MY CLIENTS</div>
+    <div id="clientList" class="loading">Loading clients...</div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState, logout } from "./js/auth-service.js";
+    import { getClientsForTrainer, getClientStatus } from "./js/client-service.js";
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await logout();
+      window.location.href = "trainer-login.html";
+    });
+
+    function initials(name) {
+      return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    function renderClients(clients) {
+      const listEl = document.getElementById("clientList");
+
+      if (clients.length === 0) {
+        listEl.className = "empty";
+        listEl.textContent = "No clients assigned to you yet.";
+        return;
+      }
+
+      listEl.className = "";
+      listEl.innerHTML = "";
+
+      clients.forEach(client => {
+        const { status, daysLeft } = getClientStatus(client);
+        const badgeText = status === "expired" ? "Expired"
+          : status === "expiring" ? `${daysLeft}d left`
+          : "Active";
+
+        const row = document.createElement("a");
+        row.href = `trainer-client-intake.html?clientId=${client.id}`;
+        row.style.textDecoration = "none";
+        row.style.color = "inherit";
+        row.className = "client-row";
+        row.innerHTML = `
+          <div class="avatar">${initials(client.name)}</div>
+          <div>
+            <div class="client-name">${client.name}</div>
+            <div class="client-meta">${client.planName || ""} · ${client.purpose ? client.purpose.replace("_", " ") : ""}</div>
+          </div>
+          <div class="badge ${status}">${badgeText}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    watchAuthState(async (session) => {
+      if (!session) {
+        window.location.href = "trainer-login.html";
+        return;
+      }
+      if (session.role !== "trainer") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>This account isn't registered as a Trainer.</p>";
+        return;
+      }
+
+      document.getElementById("trainerName").textContent = session.profile.name || "Trainer";
+
+      try {
+        const clients = await getClientsForTrainer(session.user.uid);
+        renderClients(clients);
+      } catch (err) {
+        document.getElementById("clientList").textContent = "Couldn't load clients: " + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
