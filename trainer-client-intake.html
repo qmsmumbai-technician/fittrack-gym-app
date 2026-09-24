@@ -53,9 +53,9 @@
   </main>
 
   <script type="module">
-    import { watchAuthState } from "./js/auth-service.js";
-    import { getClient } from "./js/client-service.js";
-    import { saveIntake, getIntake } from "./js/trainer-service.js";
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getClient } from "./js/client-service.js?v=2";
+    import { saveIntake, getIntake } from "./js/trainer-service.js?v=2";
 
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get("clientId");
@@ -148,7 +148,7 @@
   </div>
 
   <script type="module">
-    import { saveIntake } from "./js/trainer-service.js";
+    import { saveIntake } from "./js/trainer-service.js?v=2";
 
     // Show bottom bar once form is ready (simple poll — form renders async above)
     const observer = new MutationObserver(() => {

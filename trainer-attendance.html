@@ -57,9 +57,9 @@
   </main>
 
   <script type="module">
-    import { watchAuthState } from "./js/auth-service.js";
-    import { getClientsForTrainer } from "./js/client-service.js";
-    import { getTodayAttendance, markCheckIn, markCheckOut } from "./js/trainer-service.js";
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getClientsForTrainer } from "./js/client-service.js?v=2";
+    import { getTodayAttendance, markCheckIn, markCheckOut } from "./js/trainer-service.js?v=2";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     document.getElementById("todayLabel").textContent =

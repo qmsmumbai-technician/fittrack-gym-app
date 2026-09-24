@@ -61,9 +61,9 @@
   </main>
 
   <script type="module">
-    import { auth } from "./js/firebase-config.js";
-    import { watchAuthState, logout } from "./js/auth-service.js";
-    import { getAllClients, getClientStatus } from "./js/client-service.js";
+    import { auth } from "./js/firebase-config.js?v=2";
+    import { watchAuthState, logout } from "./js/auth-service.js?v=2";
+    import { getAllClients, getClientStatus } from "./js/client-service.js?v=2";
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await logout();

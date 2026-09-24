@@ -46,8 +46,8 @@
   </main>
 
   <script type="module">
-    import { watchAuthState, logout } from "./js/auth-service.js";
-    import { getClientsForTrainer, getClientStatus } from "./js/client-service.js";
+    import { watchAuthState, logout } from "./js/auth-service.js?v=2";
+    import { getClientsForTrainer, getClientStatus } from "./js/client-service.js?v=2";
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await logout();

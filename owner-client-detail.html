@@ -47,9 +47,9 @@
   </main>
 
   <script type="module">
-    import { watchAuthState } from "./js/auth-service.js";
-    import { getClient, getPayments, getClientStatus } from "./js/client-service.js";
-    import { getIntake, getLatestPlan, getRecentAttendance } from "./js/trainer-service.js";
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getClient, getPayments, getClientStatus } from "./js/client-service.js?v=2";
+    import { getIntake, getLatestPlan, getRecentAttendance } from "./js/trainer-service.js?v=2";
 
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get("clientId");
