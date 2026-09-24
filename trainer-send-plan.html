@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Trainer — Send Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header button.back { color: #142850; background: none; border: none; padding: 0; cursor: pointer; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
+
+  .client-card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #dbe4ff; display: flex;
+    align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; }
+
+  .plan-card { background: #fff; border-radius: 14px; padding: 18px; }
+  .plan-title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 17px; margin-bottom: 10px; }
+  .plan-days { font-size: 13.5px; line-height: 2; color: #3a4658; }
+  .divider { height: 1px; background: #eef1f6; margin: 14px 0; }
+  .plan-notes { font-size: 12.5px; color: #6b7688; }
+  .signature { font-size: 12px; color: #a9b3c2; margin-top: 8px; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.whatsapp { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+  .sent-note { text-align: center; font-size: 12.5px; color: #2e9c5a; margin-top: 10px; display: none; }
+  .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+</style>
+</head>
+<body>
+
+  <header>
+    <button class="back" id="backBtn" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="title">Review &amp; Send</div>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading">Loading plan...</div>
+  </main>
+
+  <div class="bottom-bar" id="bottomBar" style="display:none;">
+    <a class="whatsapp" id="sendBtn" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Send via WhatsApp
+    </a>
+    <div class="sent-note" id="sentNote">Marked as sent ✓</div>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js";
+    import { getClient } from "./js/client-service.js";
+    import { getPlanById, markPlanSent } from "./js/trainer-service.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+    const planId = params.get("planId");
+    const DAY_NAMES = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = `trainer-plan-builder.html?clientId=${clientId}`;
+    });
+
+    function initials(name) {
+      return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    async function loadAndRender() {
+      try {
+        const client = await getClient(clientId);
+        const plan = await getPlanById(clientId, planId);
+        if (!client || !plan) {
+          document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Client or plan not found.</p>";
+          return;
+        }
+
+        const dayLines = Object.keys(DAY_NAMES).map(key => {
+          const val = plan.days && plan.days[key] ? plan.days[key] : "Rest Day";
+          return `<strong>${DAY_NAMES[key]}</strong> — ${val}`;
+        }).join("<br>");
+
+        document.getElementById("mainContent").innerHTML = `
+          <div class="client-card">
+            <div class="avatar">${initials(client.name)}</div>
+            <div>
+              <div style="font-weight:500;font-size:14.5px;">${client.name}</div>
+              <div style="font-size:12px;color:#6b7688;">${client.phone || "no phone on file"}</div>
+            </div>
+          </div>
+          <div class="plan-card">
+            <div class="plan-title">Your Workout Plan 💪</div>
+            <div class="plan-days">${dayLines}</div>
+            ${plan.notes ? `<div class="divider"></div><div class="plan-notes">${plan.notes}</div>` : ""}
+            <div class="signature">— FitTrack Gym</div>
+          </div>
+        `;
+
+        // Build the WhatsApp message text
+        const plainDays = Object.keys(DAY_NAMES).map(key => {
+          const val = plan.days && plan.days[key] ? plan.days[key] : "Rest Day";
+          return `${DAY_NAMES[key]} - ${val}`;
+        }).join("\n");
+        let message = `Hi ${client.name}, here's your workout plan from FitTrack Gym:\n\n${plainDays}`;
+        if (plan.notes) message += `\n\nNote: ${plan.notes}`;
+
+        const phoneDigits = (client.phone || "").replace(/\D/g, "");
+        const waLink = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
+        const sendBtn = document.getElementById("sendBtn");
+        sendBtn.href = waLink;
+
+        sendBtn.addEventListener("click", async () => {
+          try {
+            await markPlanSent(clientId, planId);
+            document.getElementById("sentNote").style.display = "block";
+          } catch (err) {
+            // non-blocking — WhatsApp still opens even if this fails
+            console.error("Couldn't mark plan as sent:", err.message);
+          }
+        });
+
+        document.getElementById("bottomBar").style.display = "block";
+      } catch (err) {
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+      }
+    }
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "trainer-login.html"; return; }
+      if (session.role !== "trainer") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Trainer access only.</p>";
+        return;
+      }
+      if (clientId && planId) loadAndRender();
+      else document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Missing client or plan reference.</p>";
+    });
+  </script>
+
+</body>
+</html>

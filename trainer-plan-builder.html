@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Trainer — Build Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header button.back { color: #142850; background: none; border: none; padding: 0; cursor: pointer; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  .sub { font-size: 12px; color: #6b7688; }
+  main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
+
+  .day-row { background: #fff; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center;
+    gap: 12px; margin-top: 8px; }
+  .day-label { width: 34px; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+  .day-row input { flex: 1; border: none; outline: none; font-size: 14px; font-family: 'Barlow'; color: #3a4658; background: transparent; padding: 6px 0; }
+
+  label.section { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 18px; }
+  textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 14.5px; outline: none; font-family: 'Barlow';
+    height: 70px; resize: none; }
+
+  .caution { background: #fdeee0; border-radius: 10px; padding: 10px 14px; margin-top: 14px; font-size: 12px; color: #8a4d0f; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #142850; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+  .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+</style>
+</head>
+<body>
+
+  <header>
+    <button class="back" id="backBtn" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div>
+      <div class="title">Build Workout Plan</div>
+      <div class="sub" id="clientMeta">Loading...</div>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading">Loading client...</div>
+  </main>
+
+  <div class="bottom-bar" id="bottomBar" style="display:none;">
+    <div class="error" id="formError"></div>
+    <button class="primary" id="saveBtn">Review &amp; Send</button>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js";
+    import { getClient } from "./js/client-service.js";
+    import { getIntake, getLatestPlan, createWorkoutPlan } from "./js/trainer-service.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+    const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = `trainer-client-intake.html?clientId=${clientId}`;
+    });
+
+    if (!clientId) {
+      document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>No client selected.</p>";
+    }
+
+    async function loadAndRender() {
+      try {
+        const client = await getClient(clientId);
+        if (!client) {
+          document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Client not found.</p>";
+          return;
+        }
+        const intake = await getIntake(clientId);
+        const existingPlan = await getLatestPlan(clientId);
+
+        document.getElementById("clientMeta").textContent = client.name;
+
+        let html = "";
+        DAYS.forEach(day => {
+          const key = day.toLowerCase();
+          const existingVal = existingPlan && existingPlan.days ? (existingPlan.days[key] || "") : "";
+          html += `
+            <div class="day-row">
+              <div class="day-label">${day}</div>
+              <input type="text" data-day="${key}" placeholder="e.g. Cardio 30 min, or Rest Day" value="${existingVal}">
+            </div>
+          `;
+        });
+        html += `<label class="section">NOTES FOR THIS PLAN</label>
+          <textarea id="planNotes" placeholder="Any general notes for the client...">${(existingPlan && existingPlan.notes) || ""}</textarea>`;
+
+        if (intake && intake.healthNotes) {
+          html += `<div class="caution">⚠ From intake: ${intake.healthNotes}</div>`;
+        }
+
+        document.getElementById("mainContent").innerHTML = html;
+        document.getElementById("bottomBar").style.display = "block";
+      } catch (err) {
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("formError");
+      const saveBtn = document.getElementById("saveBtn");
+      errorEl.style.display = "none";
+
+      const days = {};
+      DAYS.forEach(day => {
+        const key = day.toLowerCase();
+        const input = document.querySelector(`input[data-day="${key}"]`);
+        days[key] = input ? input.value.trim() : "";
+      });
+      const notes = document.getElementById("planNotes").value.trim();
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      try {
+        const trainerId = getAuth().currentUser.uid;
+        const planId = await createWorkoutPlan(clientId, trainerId, { days, notes });
+        window.location.href = `trainer-send-plan.html?clientId=${clientId}&planId=${planId}`;
+      } catch (err) {
+        errorEl.textContent = "Error saving plan: " + err.message;
+        errorEl.style.display = "block";
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Review & Send";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "trainer-login.html"; return; }
+      if (session.role !== "trainer") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Trainer access only.</p>";
+        return;
+      }
+      if (clientId) loadAndRender();
+    });
+  </script>
+
+</body>
+</html>
