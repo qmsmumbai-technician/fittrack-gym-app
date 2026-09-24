@@ -32,7 +32,7 @@
     align-items: flex-end; justify-content: center; z-index: 10; }
   .modal-overlay.open { display: flex; }
   .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 480px;
-    max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    max-height: calc(var(--real-vh, 1vh) * 85); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .modal h2 { font-family: 'Barlow Condensed'; font-size: 20px; margin: 0 0 16px; }
   .modal label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 12px; }
   .modal input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px 14px;
@@ -117,6 +117,20 @@
   <script type="module">
     import { watchAuthState } from "./js/auth-service.js?v=2";
     import { getAllTrainers, addTrainerRecord } from "./js/client-service.js?v=2";
+
+    // CSS vh doesn't reliably shrink when the mobile keyboard opens, so we
+    // measure the real visible height in JS and feed it in as a CSS variable.
+    // window.visualViewport (where supported) tracks the keyboard correctly;
+    // window.innerHeight is the fallback.
+    function setRealVH() {
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--real-vh', (h * 0.01) + 'px');
+    }
+    setRealVH();
+    window.addEventListener('resize', setRealVH);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setRealVH);
+    }
 
     let currentSession = null;
 
