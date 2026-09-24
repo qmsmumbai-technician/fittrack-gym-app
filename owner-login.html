@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FitTrack Owner — Login</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#142850">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; }
@@ -49,6 +51,10 @@
 
   <script type="module">
     import { login, getCurrentRole } from "./js/auth-service.js?v=2";
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
 
     const form = document.getElementById("loginForm");
     const btn = document.getElementById("loginBtn");
