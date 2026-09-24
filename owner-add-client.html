@@ -185,7 +185,7 @@
     ];
 
     let state = {
-      name: "", phone: "", purpose: "weight_loss",
+      name: "", phone: "", purpose: null,
       plan: null,
       joiningDate: new Date().toISOString().split("T")[0],
       sessionTimePref: "morning",
@@ -319,6 +319,10 @@
         state.phone = document.getElementById("cPhone").value.trim();
         if (!state.name || !state.phone) {
           alert("Please enter the client's name and phone number.");
+          return;
+        }
+        if (!state.purpose) {
+          alert("Please select the client's goal.");
           return;
         }
         renderPlans();
