@@ -8,6 +8,7 @@ import {
   collection,
   doc,
   addDoc,
+  setDoc,
   updateDoc,
   getDoc,
   getDocs,
@@ -77,4 +78,26 @@ export function getClientStatus(client) {
   if (daysLeft < 0) return { status: "expired", daysLeft };
   if (daysLeft <= 7) return { status: "expiring", daysLeft };
   return { status: "active", daysLeft };
+}
+
+// ---------- trainer management (owner-only, per security rules) ----------
+// The app can't create a trainer's login itself (no backend/Cloud Functions).
+// Flow: owner creates the trainer's account in Firebase Console → Auth → Add
+// user, copies the UID, then calls this to write their profile + role doc.
+export async function addTrainerRecord(uid, { name, phone }) {
+  await setDoc(doc(db, "trainers", uid), {
+    name, phone,
+    active: true,
+    joinedAt: serverTimestamp(),
+    clientCount: 0
+  });
+}
+
+export async function getAllTrainers() {
+  const snap = await getDocs(collection(db, "trainers"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function setTrainerActive(uid, active) {
+  await updateDoc(doc(db, "trainers", uid), { active });
 }
