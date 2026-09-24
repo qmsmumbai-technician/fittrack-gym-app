@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Trainer — Client Intake</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a, header button.back { color: #142850; text-decoration: none; display: flex; background: none; border: none; padding: 0; cursor: pointer; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  .sub { font-size: 12px; color: #6b7688; }
+  main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
+
+  label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 18px; }
+  input, textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
+  textarea { height: 80px; resize: none; }
+
+  .pill-row { display: flex; gap: 8px; margin-top: 8px; }
+  .pill { flex: 1; text-align: center; background: #fff; border: 1.5px solid #dfe4ec; border-radius: 10px;
+    padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .pill.selected { background: #142850; color: #fff; border-color: #142850; }
+  .row-2 { display: flex; gap: 12px; }
+  .row-2 > div { flex: 1; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #f5871f; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+  .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+  .saved-note { font-size: 11.5px; color: #2e9c5a; margin-top: 4px; display: none; }
+</style>
+</head>
+<body>
+
+  <header>
+    <button class="back" id="backBtn" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div>
+      <div class="title">Client Intake</div>
+      <div class="sub" id="clientMeta">Loading...</div>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading">Loading client...</div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js";
+    import { getClient } from "./js/client-service.js";
+    import { saveIntake, getIntake } from "./js/trainer-service.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+    let currentSession = null;
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "trainer-dashboard.html";
+    });
+
+    if (!clientId) {
+      document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>No client selected. Go back and tap a client from your list.</p>";
+    }
+
+    function renderForm(client, intake) {
+      document.getElementById("clientMeta").textContent =
+        `${client.name} · ${client.purpose ? client.purpose.replace("_", " ") : ""}`;
+
+      const fitnessLevel = (intake && intake.fitnessLevel) || "beginner";
+      const sessionPref = (intake && intake.sessionPref) || client.sessionTimePref || "morning";
+
+      document.getElementById("mainContent").innerHTML = `
+        <label>FITNESS LEVEL</label>
+        <div class="pill-row" id="fitnessRow">
+          <div class="pill" data-val="beginner">Beginner</div>
+          <div class="pill" data-val="intermediate">Intermediate</div>
+          <div class="pill" data-val="advanced">Advanced</div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>HEIGHT (CM)</label>
+            <input id="heightCm" type="number" value="${(intake && intake.heightCm) || ''}">
+          </div>
+          <div>
+            <label>WEIGHT (KG)</label>
+            <input id="weightKg" type="number" value="${(intake && intake.weightKg) || ''}">
+          </div>
+        </div>
+
+        <label>HEALTH NOTES / RESTRICTIONS</label>
+        <textarea id="healthNotes" placeholder="Injuries, medical conditions, movements to avoid...">${(intake && intake.healthNotes) || ''}</textarea>
+
+        <label>SESSION TIME (set by owner)</label>
+        <div style="margin-top:6px;padding:12px 14px;background:#eef1f6;border-radius:10px;font-size:14px;color:#6b7688;text-transform:capitalize;">${client.sessionTimePref || "—"}</div>
+
+        <label>TARGET</label>
+        <input id="target" placeholder="e.g. Lose 6kg in 3 months" value="${(intake && intake.target) || ''}">
+
+        <div class="error" id="formError"></div>
+        <div class="saved-note" id="savedNote">Saved ✓</div>
+      `;
+
+      // wire up pill selections
+      document.querySelectorAll(`#fitnessRow .pill`).forEach(p => {
+        if (p.dataset.val === fitnessLevel) p.classList.add("selected");
+        p.addEventListener("click", () => {
+          document.querySelectorAll(`#fitnessRow .pill`).forEach(x => x.classList.remove("selected"));
+          p.classList.add("selected");
+        });
+      });
+    }
+
+    async function loadAndRender() {
+      try {
+        const client = await getClient(clientId);
+        if (!client) {
+          document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Client not found.</p>";
+          return;
+        }
+        const intake = await getIntake(clientId);
+        renderForm(client, intake);
+      } catch (err) {
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+      }
+    }
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "trainer-login.html"; return; }
+      if (session.role !== "trainer") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Trainer access only.</p>";
+        return;
+      }
+      currentSession = session;
+      if (clientId) loadAndRender();
+    });
+  </script>
+
+  <div class="bottom-bar" id="bottomBar" style="display:none;">
+    <button class="primary" id="saveBtn">Save &amp; Continue to Plan</button>
+  </div>
+
+  <script type="module">
+    import { saveIntake } from "./js/trainer-service.js";
+
+    // Show bottom bar once form is ready (simple poll — form renders async above)
+    const observer = new MutationObserver(() => {
+      if (document.getElementById("fitnessRow")) {
+        document.getElementById("bottomBar").style.display = "block";
+      }
+    });
+    observer.observe(document.getElementById("mainContent"), { childList: true, subtree: true });
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const clientId = params.get("clientId");
+      const errorEl = document.getElementById("formError");
+      const savedNote = document.getElementById("savedNote");
+      const saveBtn = document.getElementById("saveBtn");
+      errorEl.style.display = "none";
+      savedNote.style.display = "none";
+
+      const fitnessLevel = document.querySelector("#fitnessRow .pill.selected")?.dataset.val || "beginner";
+      const heightCm = Number(document.getElementById("heightCm").value) || null;
+      const weightKg = Number(document.getElementById("weightKg").value) || null;
+      const healthNotes = document.getElementById("healthNotes").value.trim();
+      const target = document.getElementById("target").value.trim();
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      try {
+        // trainerId comes from the currently signed-in Firebase user
+        const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+        const auth = getAuth();
+        const trainerId = auth.currentUser.uid;
+
+        await saveIntake(clientId, trainerId, {
+          fitnessLevel, heightCm, weightKg, healthNotes, target
+        });
+
+        window.location.href = `trainer-plan-builder.html?clientId=${clientId}`;
+      } catch (err) {
+        errorEl.textContent = "Error saving: " + err.message;
+        errorEl.style.display = "block";
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save & Continue to Plan";
+      }
+    });
+  </script>
+
+</body>
+</html>
