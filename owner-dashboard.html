@@ -101,8 +101,13 @@
           : status === "expiring" ? `${daysLeft}d left`
           : "Active";
 
-        const row = document.createElement("div");
+        const row = document.createElement("a");
+        row.href = `owner-client-detail.html?clientId=${client.id}`;
+        row.style.textDecoration = "none";
+        row.style.color = "inherit";
         row.className = "client-row";
+        row.style.display = "flex";
+        row.style.cursor = "pointer";
         row.innerHTML = `
           <div class="avatar">${initials(client.name)}</div>
           <div>
