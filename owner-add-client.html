@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Add Client</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a, header .back { color: #142850; text-decoration: none; display: flex; cursor: pointer; background: none; border: none; padding: 0; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  .progress { padding: 0 24px 8px; display: flex; gap: 6px; }
+  .progress .bar { flex: 1; height: 4px; border-radius: 4px; background: #e2e6ee; }
+  .progress .bar.done { background: #f5871f; }
+  .step-label { padding: 0 24px 16px; font-size: 12px; color: #6b7688; }
+  main { padding: 0 24px 110px; max-width: 480px; margin: 0 auto; }
+  .step { display: none; }
+  .step.active { display: block; }
+
+  label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 14px; }
+  input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
+
+  .option-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; margin-top: 10px; cursor: pointer; }
+  .option-card.selected { border-color: #f5871f; }
+  .option-icon { width: 38px; height: 38px; border-radius: 10px; background: #eef1f6; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; }
+  .option-card.selected .option-icon { background: #fdeee0; }
+  .option-label { flex: 1; font-size: 14.5px; font-weight: 500; }
+  .radio-dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #c7cede; flex-shrink: 0; }
+  .option-card.selected .radio-dot { border: none; background: #f5871f; display: flex; align-items: center; justify-content: center; }
+
+  .plan-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; justify-content: space-between; margin-top: 10px; cursor: pointer; }
+  .plan-card.selected { border-color: #f5871f; }
+  .plan-name { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 17px; }
+  .plan-sub { font-size: 12px; color: #6b7688; margin-top: 2px; }
+  .plan-price { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 19px; text-align: right; }
+  .plan-select-tag { font-size: 11px; font-weight: 600; color: #142850; background: #eef1f6; padding: 3px 8px; border-radius: 20px; margin-top: 4px; display: inline-block; }
+  .plan-card.selected .plan-select-tag { color: #fff; background: #f5871f; }
+
+  .row-2 { display: flex; gap: 12px; }
+  .row-2 > div { flex: 1; }
+  .pill-row { display: flex; gap: 8px; margin-top: 8px; }
+  .pill { flex: 1; text-align: center; background: #fff; border: 1.5px solid #dfe4ec; border-radius: 10px;
+    padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .pill.selected { background: #142850; color: #fff; border-color: #142850; }
+
+  .trainer-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px; margin-top: 8px; cursor: pointer; }
+  .trainer-card.selected { border-color: #f5871f; }
+  .t-avatar { width: 30px; height: 30px; border-radius: 50%; background: #dbe4ff; display: flex;
+    align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 700; font-size: 11px; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #142850; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+  .empty-note { font-size: 13px; color: #6b7688; padding: 12px 0; }
+</style>
+</head>
+<body>
+
+  <header>
+    <button class="back" id="backBtn" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="title">New Client</div>
+  </header>
+
+  <div class="progress">
+    <div class="bar" id="bar1"></div>
+    <div class="bar" id="bar2"></div>
+    <div class="bar" id="bar3"></div>
+  </div>
+  <div class="step-label" id="stepLabel">Step 1 of 3 — Client Info &amp; Purpose</div>
+
+  <main>
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+      <label>CLIENT NAME</label>
+      <input id="cName" placeholder="Full name">
+
+      <label>MOBILE NUMBER</label>
+      <input id="cPhone" placeholder="10-digit mobile number">
+
+      <label style="margin-top:20px;">WHAT'S THEIR GOAL?</label>
+      <div id="purposeOptions"></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div id="planOptions"></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+      <label>JOINING DATE</label>
+      <input id="joinDate" type="date">
+
+      <label>SESSION TIME</label>
+      <div class="pill-row">
+        <div class="pill selected" data-val="morning">Morning</div>
+        <div class="pill" data-val="evening">Evening</div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>INITIAL PAYMENT (₹)</label>
+          <input id="payAmount" type="number" placeholder="Amount">
+        </div>
+        <div>
+          <label>METHOD</label>
+          <div class="pill-row" style="margin-top:6px;">
+            <div class="pill selected" data-method="cash">Cash</div>
+            <div class="pill" data-method="upi">UPI</div>
+          </div>
+        </div>
+      </div>
+
+      <label>ASSIGN TRAINER</label>
+      <div id="trainerOptions"><div class="empty-note">Loading trainers...</div></div>
+
+      <div class="error" id="finalError"></div>
+    </div>
+
+  </main>
+
+  <div class="bottom-bar">
+    <button class="primary" id="nextBtn">Next: Suggest Plan</button>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js";
+    import { addClient, logPayment, getAllTrainers } from "./js/client-service.js";
+
+    const PURPOSES = [
+      { id: "weight_loss", label: "Weight Loss" },
+      { id: "muscle_gain", label: "Muscle Gain" },
+      { id: "general_fitness", label: "General Fitness" },
+      { id: "strength_training", label: "Strength Training" },
+      { id: "rehab", label: "Rehab / Recovery" }
+    ];
+
+    const PLANS = [
+      { name: "1 Month", price: 1500, days: 30, recommendedFor: [] },
+      { name: "3 Months", price: 4000, days: 90, recommendedFor: ["weight_loss"] },
+      { name: "6 Months", price: 7000, days: 180, recommendedFor: ["muscle_gain", "strength_training"] },
+      { name: "12 Months", price: 12000, days: 365, recommendedFor: ["general_fitness", "rehab"] }
+    ];
+
+    let state = {
+      name: "", phone: "", purpose: "weight_loss",
+      plan: null,
+      joiningDate: new Date().toISOString().split("T")[0],
+      sessionTimePref: "morning",
+      payAmount: "", paymentMethod: "cash",
+      trainerId: null
+    };
+    let trainers = [];
+    let currentStep = 1;
+
+    // ---------- Step 1: purpose ----------
+    function renderPurposes() {
+      const el = document.getElementById("purposeOptions");
+      el.innerHTML = "";
+      PURPOSES.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "option-card" + (state.purpose === p.id ? " selected" : "");
+        card.innerHTML = `
+          <div class="option-icon"></div>
+          <div class="option-label">${p.label}</div>
+          <div class="radio-dot"></div>
+        `;
+        card.addEventListener("click", () => { state.purpose = p.id; renderPurposes(); });
+        el.appendChild(card);
+      });
+    }
+
+    // ---------- Step 2: plan ----------
+    function renderPlans() {
+      const el = document.getElementById("planOptions");
+      el.innerHTML = "";
+      PLANS.forEach(p => {
+        const isRecommended = p.recommendedFor.includes(state.purpose);
+        const isSelected = state.plan && state.plan.name === p.name;
+        const card = document.createElement("div");
+        card.className = "plan-card" + (isSelected ? " selected" : "");
+        card.innerHTML = `
+          <div>
+            <div class="plan-name">${p.name} ${isRecommended ? '<span style="font-size:10px;font-weight:700;color:#f5871f;">★ RECOMMENDED</span>' : ''}</div>
+            <div class="plan-sub">${p.days} days validity</div>
+          </div>
+          <div>
+            <div class="plan-price">₹${p.price.toLocaleString('en-IN')}</div>
+            <div class="plan-select-tag">Select</div>
+          </div>
+        `;
+        card.addEventListener("click", () => {
+          state.plan = p;
+          document.getElementById("payAmount").value = p.price;
+          renderPlans();
+        });
+        el.appendChild(card);
+      });
+    }
+
+    // ---------- Step 3: finalize ----------
+    document.querySelectorAll('.pill-row').forEach(row => {
+      row.addEventListener("click", (e) => {
+        const pill = e.target.closest(".pill");
+        if (!pill) return;
+        row.querySelectorAll(".pill").forEach(p => p.classList.remove("selected"));
+        pill.classList.add("selected");
+        if (pill.dataset.val) state.sessionTimePref = pill.dataset.val;
+        if (pill.dataset.method) state.paymentMethod = pill.dataset.method;
+      });
+    });
+
+    document.getElementById("joinDate").value = state.joiningDate;
+    document.getElementById("joinDate").addEventListener("change", (e) => {
+      state.joiningDate = e.target.value;
+    });
+
+    async function loadTrainers() {
+      const el = document.getElementById("trainerOptions");
+      try {
+        trainers = await getAllTrainers();
+        const active = trainers.filter(t => t.active);
+        if (active.length === 0) {
+          el.innerHTML = '<div class="empty-note">No active trainers yet — add one from Trainer Management first.</div>';
+          return;
+        }
+        el.innerHTML = "";
+        active.forEach(t => {
+          const card = document.createElement("div");
+          card.className = "trainer-card" + (state.trainerId === t.id ? " selected" : "");
+          const initials = (t.name || "??").split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
+          card.innerHTML = `
+            <div class="t-avatar">${initials}</div>
+            <div style="flex:1;font-size:14px;">${t.name}</div>
+            <div style="font-size:11px;color:#6b7688;">${t.clientCount || 0} clients</div>
+          `;
+          card.addEventListener("click", () => {
+            state.trainerId = t.id;
+            document.querySelectorAll(".trainer-card").forEach(c => c.classList.remove("selected"));
+            card.classList.add("selected");
+          });
+          el.appendChild(card);
+        });
+      } catch (err) {
+        el.innerHTML = '<div class="empty-note">Error loading trainers: ' + err.message + '</div>';
+      }
+    }
+
+    // ---------- Step navigation ----------
+    function showStep(n) {
+      currentStep = n;
+      document.querySelectorAll(".step").forEach((s, i) => s.classList.toggle("active", i === n - 1));
+      document.getElementById("bar1").classList.toggle("done", n >= 1);
+      document.getElementById("bar2").classList.toggle("done", n >= 2);
+      document.getElementById("bar3").classList.toggle("done", n >= 3);
+      const labels = [
+        "Step 1 of 3 — Client Info & Purpose",
+        "Step 2 of 3 — Select a Plan",
+        "Step 3 of 3 — Joining Details"
+      ];
+      document.getElementById("stepLabel").textContent = labels[n - 1];
+      const nextBtn = document.getElementById("nextBtn");
+      nextBtn.textContent = n === 1 ? "Next: Suggest Plan"
+        : n === 2 ? "Next: Payment & Trainer"
+        : "Confirm & Save Client";
+    }
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      if (currentStep === 1) { window.location.href = "owner-dashboard.html"; return; }
+      showStep(currentStep - 1);
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("finalError");
+      errorEl.style.display = "none";
+
+      if (currentStep === 1) {
+        state.name = document.getElementById("cName").value.trim();
+        state.phone = document.getElementById("cPhone").value.trim();
+        if (!state.name || !state.phone) {
+          alert("Please enter the client's name and phone number.");
+          return;
+        }
+        renderPlans();
+        showStep(2);
+        return;
+      }
+
+      if (currentStep === 2) {
+        if (!state.plan) {
+          alert("Please select a plan.");
+          return;
+        }
+        showStep(3);
+        loadTrainers();
+        return;
+      }
+
+      // Step 3 — save to Firestore
+      state.payAmount = document.getElementById("payAmount").value;
+      if (!state.trainerId) {
+        errorEl.textContent = "Please select a trainer to assign.";
+        errorEl.style.display = "block";
+        return;
+      }
+      if (!state.payAmount) {
+        errorEl.textContent = "Please enter the initial payment amount.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const nextBtn = document.getElementById("nextBtn");
+      nextBtn.disabled = true;
+      nextBtn.textContent = "Saving...";
+
+      try {
+        const clientId = await addClient({
+          name: state.name,
+          phone: state.phone,
+          purpose: state.purpose,
+          planName: state.plan.name,
+          planPrice: state.plan.price,
+          planDurationDays: state.plan.days,
+          joiningDate: state.joiningDate,
+          sessionTimePref: state.sessionTimePref,
+          assignedTrainerId: state.trainerId
+        });
+
+        await logPayment(clientId, {
+          amount: Number(state.payAmount),
+          method: state.paymentMethod,
+          note: "initial payment"
+        });
+
+        window.location.href = "owner-dashboard.html";
+      } catch (err) {
+        errorEl.textContent = "Error saving client: " + err.message;
+        errorEl.style.display = "block";
+        nextBtn.disabled = false;
+        nextBtn.textContent = "Confirm & Save Client";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+        return;
+      }
+      renderPurposes();
+    });
+  </script>
+
+</body>
+</html>
