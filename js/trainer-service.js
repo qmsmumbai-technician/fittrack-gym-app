@@ -90,3 +90,18 @@ export async function getTodayAttendance(clientId) {
   const snap = await getDoc(doc(db, "clients", clientId, "attendance", todayId()));
   return snap.exists() ? snap.data() : null;
 }
+
+// Recent attendance days for the owner's read-only view — orders by document
+// ID (which is the YYYY-MM-DD date string) since that sorts chronologically
+// as plain text, no extra date field needed.
+export async function getRecentAttendance(clientId, days = 7) {
+  const { collection, query, orderBy, limit, getDocs, documentId } =
+    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const q = query(
+    collection(db, "clients", clientId, "attendance"),
+    orderBy(documentId(), "desc"),
+    limit(days)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ date: d.id, ...d.data() }));
+}

@@ -47,6 +47,13 @@ export async function logPayment(clientId, { amount, method, note = "" }) {
   });
 }
 
+export async function getPayments(clientId) {
+  const snap = await getDocs(
+    query(collection(db, "clients", clientId, "payments"), orderBy("date", "desc"))
+  );
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 // All clients (owner dashboard / client list).
 export async function getAllClients() {
   const snap = await getDocs(query(collection(db, "clients"), orderBy("createdAt", "desc")));
