@@ -62,6 +62,11 @@ export async function getLatestPlan(clientId) {
   return snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
 }
 
+export async function getPlanById(clientId, planId) {
+  const snap = await getDoc(doc(db, "clients", clientId, "workoutPlans", planId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
 // ---------- attendance (one doc per day, ID = YYYY-MM-DD) ----------
 function todayId() {
   return new Date().toISOString().split("T")[0];
