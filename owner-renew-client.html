@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Renew Membership</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a { color: #142850; text-decoration: none; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 130px; max-width: 480px; margin: 0 auto; }
+
+  .current-card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .current-card .label { font-size: 12px; color: #6b7688; }
+  .current-card .val { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 17px; margin-top: 2px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 6px; }
+  .badge.active { color: #2e9c5a; background: #e5f3ec; }
+  .badge.expiring { color: #c9862c; background: #fdf1de; }
+  .badge.expired { color: #c1443c; background: #fbe4e2; }
+
+  .plan-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; justify-content: space-between; margin-top: 10px; cursor: pointer; }
+  .plan-card.selected { border-color: #f5871f; }
+  .plan-name { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 17px; }
+  .plan-sub { font-size: 12px; color: #6b7688; margin-top: 2px; }
+  .plan-price { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 19px; text-align: right; }
+  .plan-select-tag { font-size: 11px; font-weight: 600; color: #142850; background: #eef1f6; padding: 3px 8px; border-radius: 20px; margin-top: 4px; display: inline-block; }
+  .plan-card.selected .plan-select-tag { color: #fff; background: #f5871f; }
+
+  label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 18px; }
+  input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
+  .pill-row { display: flex; gap: 8px; margin-top: 8px; }
+  .pill { flex: 1; text-align: center; background: #fff; border: 1.5px solid #dfe4ec; border-radius: 10px;
+    padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .pill.selected { background: #142850; color: #fff; border-color: #142850; }
+
+  .preview-card { background: #eefaf2; border: 1px solid #bfe6cf; border-radius: 10px; padding: 14px;
+    margin-top: 18px; display: none; }
+  .preview-card .label { font-size: 12.5px; color: #2e7d5b; font-weight: 500; }
+  .preview-card .val { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 18px; color: #2e7d5b; margin-top: 2px; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #f5871f; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+  .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease;
+  animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <a id="backLink" href="owner-dashboard.html" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="title">Renew Membership</div>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading">Loading client...</div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getClient, getClientStatus, renewClient } from "./js/client-service.js?v=2";
+
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+    document.getElementById("backLink").href = `owner-client-detail.html?clientId=${clientId}`;
+
+    const PLANS = [
+      { name: "1 Month", price: 1500, days: 30 },
+      { name: "3 Months", price: 4000, days: 90 },
+      { name: "6 Months", price: 7000, days: 180 },
+      { name: "12 Months", price: 12000, days: 365 }
+    ];
+
+    let state = { plan: null, paymentMethod: "cash" };
+    let client = null;
+
+    function fmtDate(d) {
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    async function loadAndRender() {
+      try {
+        client = await getClient(clientId);
+        if (!client) {
+          document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Client not found.</p>";
+          return;
+        }
+        const { status, daysLeft } = getClientStatus(client);
+        const badgeText = status === "expired" ? "Expired" : status === "expiring" ? `${daysLeft} days left` : "Active";
+
+        document.getElementById("mainContent").innerHTML = `
+          <div class="current-card">
+            <div class="label">${client.name}</div>
+            <div class="val">${client.planName || "—"}</div>
+            <div class="badge ${status}">${badgeText} · expires ${fmtDate(client.expiryDate.toDate())}</div>
+          </div>
+
+          <label style="margin-top:0;">SELECT NEW PLAN</label>
+          <div id="planOptions"></div>
+
+          <label>PAYMENT AMOUNT (₹)</label>
+          <input id="payAmount" type="number" placeholder="Amount">
+
+          <label>METHOD</label>
+          <div class="pill-row" id="methodRow">
+            <div class="pill selected" data-val="cash">Cash</div>
+            <div class="pill" data-val="upi">UPI</div>
+            <div class="pill" data-val="card">Card</div>
+          </div>
+
+          <div class="preview-card" id="previewCard">
+            <div class="label">New expiry date</div>
+            <div class="val" id="previewDate"></div>
+          </div>
+
+          <div class="error" id="formError"></div>
+        `;
+
+        const pEl = document.getElementById("planOptions");
+        function renderPlans() {
+          pEl.innerHTML = "";
+          PLANS.forEach(p => {
+            const isSelected = state.plan && state.plan.name === p.name;
+            const card = document.createElement("div");
+            card.className = "plan-card" + (isSelected ? " selected" : "");
+            card.innerHTML = `
+              <div>
+                <div class="plan-name">${p.name}</div>
+                <div class="plan-sub">${p.days} days</div>
+              </div>
+              <div>
+                <div class="plan-price">₹${p.price.toLocaleString('en-IN')}</div>
+                <div class="plan-select-tag">Select</div>
+              </div>
+            `;
+            card.addEventListener("click", () => {
+              state.plan = p;
+              document.getElementById("payAmount").value = p.price;
+              renderPlans();
+              updatePreview();
+            });
+            pEl.appendChild(card);
+          });
+        }
+        renderPlans();
+
+        document.getElementById("methodRow").addEventListener("click", (e) => {
+          const pill = e.target.closest(".pill");
+          if (!pill) return;
+          document.querySelectorAll("#methodRow .pill").forEach(p => p.classList.remove("selected"));
+          pill.classList.add("selected");
+          state.paymentMethod = pill.dataset.val;
+        });
+
+        function updatePreview() {
+          if (!state.plan) return;
+          const currentExpiry = client.expiryDate.toDate();
+          const today = new Date();
+          const base = currentExpiry > today ? currentExpiry : today;
+          const newExpiry = new Date(base);
+          newExpiry.setDate(newExpiry.getDate() + state.plan.days);
+          document.getElementById("previewDate").textContent = fmtDate(newExpiry);
+          document.getElementById("previewCard").style.display = "block";
+        }
+
+        document.getElementById("bottomBar").style.display = "block";
+      } catch (err) {
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById("confirmBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("formError");
+      const btn = document.getElementById("confirmBtn");
+      errorEl.style.display = "none";
+
+      if (!state.plan) {
+        errorEl.textContent = "Please select a plan.";
+        errorEl.style.display = "block";
+        return;
+      }
+      const amount = document.getElementById("payAmount").value;
+      if (!amount) {
+        errorEl.textContent = "Please enter the payment amount.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        await renewClient(clientId, {
+          planName: state.plan.name,
+          planPrice: state.plan.price,
+          planDurationDays: state.plan.days,
+          paymentAmount: Number(amount),
+          paymentMethod: state.paymentMethod
+        });
+        window.location.href = `owner-client-detail.html?clientId=${clientId}`;
+      } catch (err) {
+        errorEl.textContent = "Error: " + err.message;
+        errorEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Confirm Renewal";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+        return;
+      }
+      if (clientId) loadAndRender();
+    });
+  </script>
+
+  <div class="bottom-bar" id="bottomBar" style="display:none;">
+    <button class="primary" id="confirmBtn">Confirm Renewal</button>
+  </div>
+
+</body>
+</html>
