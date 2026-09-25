@@ -99,6 +99,11 @@
 
         if (role === "trainer") {
           window.location.href = "trainer-dashboard.html";
+        } else if (role === "trainer_inactive") {
+          errorEl.textContent = "Your account has been deactivated by the gym owner. Contact them for help.";
+          errorEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Login";
         } else if (role === "owner") {
           errorEl.textContent = "This account is registered as the Owner, not a Trainer.";
           errorEl.style.display = "block";

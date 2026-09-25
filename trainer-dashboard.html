@@ -127,6 +127,10 @@
         window.location.href = "trainer-login.html";
         return;
       }
+      if (session.role === "trainer_inactive") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Your account has been deactivated by the gym owner. Contact them for help.</p>";
+        return;
+      }
       if (session.role !== "trainer") {
         document.body.innerHTML = "<p style='padding:40px;text-align:center;'>This account isn't registered as a Trainer.</p>";
         return;

@@ -116,7 +116,7 @@
 
   <script type="module">
     import { watchAuthState } from "./js/auth-service.js?v=2";
-    import { getAllTrainers, addTrainerRecord, getClientsForTrainer } from "./js/client-service.js?v=2";
+    import { getAllTrainers, addTrainerRecord, getClientsForTrainer, setTrainerActive } from "./js/client-service.js?v=2";
 
     // CSS vh doesn't reliably shrink when the mobile keyboard opens, so we
     // measure the real visible height in JS and feed it in as a CSS variable.
@@ -164,9 +164,28 @@
               <div class="t-name">${t.name}</div>
               <div class="t-meta">${t.phone || ""} · ${liveClients.length} client${liveClients.length === 1 ? '' : 's'}</div>
             </div>
-            <div class="toggle ${t.active ? 'active' : 'inactive'}">${t.active ? 'Active' : 'Inactive'}</div>
+            <button type="button" class="toggle ${t.active ? 'active' : 'inactive'}" data-trainer-id="${t.id}" data-active="${t.active}" style="border:none;cursor:pointer;">${t.active ? 'Active' : 'Inactive'}</button>
           `;
           listEl.appendChild(row);
+
+          const toggleBtn = row.querySelector(".toggle");
+          toggleBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isActive = toggleBtn.dataset.active === "true";
+            const action = isActive ? "deactivate" : "reactivate";
+            if (isActive && !confirm(`Deactivate ${t.name}? They won't be able to log in until reactivated.`)) {
+              return;
+            }
+            toggleBtn.disabled = true;
+            try {
+              await setTrainerActive(t.id, !isActive);
+              await loadTrainers();
+            } catch (err) {
+              alert("Error: " + err.message);
+              toggleBtn.disabled = false;
+            }
+          });
         }
       } catch (err) {
         listEl.className = "empty";
