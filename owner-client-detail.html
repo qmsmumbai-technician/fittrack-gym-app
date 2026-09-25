@@ -66,11 +66,14 @@
 </head>
 <body>
 
-  <header>
-    <a href="owner-dashboard.html" class="back" aria-label="Back">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-    </a>
-    <div class="title" id="clientName">Loading...</div>
+  <header style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <a href="owner-dashboard.html" class="back" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="title" id="clientName">Loading...</div>
+    </div>
+    <a id="editLink" href="#" style="font-size:13px;color:#f5871f;font-weight:600;text-decoration:none;">Edit</a>
   </header>
 
   <div class="client-summary" id="clientSummary"></div>
@@ -86,6 +89,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get("clientId");
+    document.getElementById("editLink").href = `owner-edit-client.html?clientId=${clientId}`;
     const DAY_NAMES = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
 
     function initials(name) {
