@@ -10,9 +10,15 @@
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-height: 100vh; background: #142850;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: 'Barlow', system-ui, sans-serif; color: #fff; padding: 0 32px;
+    margin: 0; min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(13,27,51,.15) 0%, rgba(13,27,51,.55) 45%, #0d1b33 78%),
+      url('icons/hero-gym.jpg');
+    background-size: cover;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    font-family: 'Barlow', system-ui, sans-serif; color: #fff; padding: 0 32px 48px;
   }
   .logo { width: 72px; height: 72px; border-radius: 18px; background: #f5871f;
     display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
