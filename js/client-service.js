@@ -84,6 +84,32 @@ export async function updateClient(clientId, { name, phone, purpose, sessionTime
   });
 }
 
+// Renewal: extends membership from the LATER of today or the current
+// expiry date — so renewing early doesn't lose the client any remaining
+// time, and renewing after a lapse starts fresh from today rather than
+// backdating from a long-past expiry.
+export async function renewClient(clientId, { planName, planPrice, planDurationDays, paymentAmount, paymentMethod }) {
+  const client = await getClient(clientId);
+  const currentExpiry = client.expiryDate.toDate();
+  const today = new Date();
+  const baseDate = currentExpiry > today ? currentExpiry : today;
+  const newExpiry = new Date(baseDate);
+  newExpiry.setDate(newExpiry.getDate() + planDurationDays);
+
+  await updateDoc(doc(db, "clients", clientId), {
+    planName, planPrice,
+    expiryDate: Timestamp.fromDate(newExpiry)
+  });
+
+  await logPayment(clientId, {
+    amount: paymentAmount,
+    method: paymentMethod,
+    note: "renewal"
+  });
+
+  return newExpiry;
+}
+
 // Derives active / expiring / expired from expiryDate — avoids a
 // stale "status" field that can drift out of sync with reality.
 export function getClientStatus(client) {
