@@ -76,6 +76,14 @@ export async function reassignTrainer(clientId, newTrainerId) {
   await updateDoc(doc(db, "clients", clientId), { assignedTrainerId: newTrainerId });
 }
 
+// General-purpose edit — name, phone, purpose, session time, trainer.
+// Does NOT touch plan/pricing/dates — that's a renewal action, not an edit.
+export async function updateClient(clientId, { name, phone, purpose, sessionTimePref, assignedTrainerId }) {
+  await updateDoc(doc(db, "clients", clientId), {
+    name, phone, purpose, sessionTimePref, assignedTrainerId
+  });
+}
+
 // Derives active / expiring / expired from expiryDate — avoids a
 // stale "status" field that can drift out of sync with reality.
 export function getClientStatus(client) {
