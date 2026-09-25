@@ -40,6 +40,9 @@ export async function getCurrentRole(uid) {
   }
   const trainerSnap = await getDoc(doc(db, "trainers", uid));
   if (trainerSnap.exists()) {
+    if (trainerSnap.data().active === false) {
+      return { role: "trainer_inactive", profile: trainerSnap.data() };
+    }
     return { role: "trainer", profile: trainerSnap.data() };
   }
   return { role: null, profile: null };
