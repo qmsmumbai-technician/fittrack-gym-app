@@ -116,7 +116,7 @@
 
   <script type="module">
     import { watchAuthState } from "./js/auth-service.js?v=2";
-    import { getAllTrainers, addTrainerRecord } from "./js/client-service.js?v=2";
+    import { getAllTrainers, addTrainerRecord, getClientsForTrainer } from "./js/client-service.js?v=2";
 
     // CSS vh doesn't reliably shrink when the mobile keyboard opens, so we
     // measure the real visible height in JS and feed it in as a CSS variable.
@@ -149,20 +149,25 @@
         }
         listEl.className = "";
         listEl.innerHTML = "";
-        trainers.forEach((t, i) => {
-          const row = document.createElement("div");
+        for (let i = 0; i < trainers.length; i++) {
+          const t = trainers[i];
+          const liveClients = await getClientsForTrainer(t.id);
+          const row = document.createElement("a");
+          row.href = `owner-trainer-clients.html?trainerId=${t.id}&name=${encodeURIComponent(t.name || 'Trainer')}`;
+          row.style.textDecoration = "none";
+          row.style.color = "inherit";
           row.className = "trainer-row anim-row";
           row.style.animationDelay = `${i * 60}ms`;
           row.innerHTML = `
             <div class="avatar">${initials(t.name || "??")}</div>
             <div>
               <div class="t-name">${t.name}</div>
-              <div class="t-meta">${t.phone || ""} · ${t.clientCount || 0} clients</div>
+              <div class="t-meta">${t.phone || ""} · ${liveClients.length} client${liveClients.length === 1 ? '' : 's'}</div>
             </div>
             <div class="toggle ${t.active ? 'active' : 'inactive'}">${t.active ? 'Active' : 'Inactive'}</div>
           `;
           listEl.appendChild(row);
-        });
+        }
       } catch (err) {
         listEl.className = "empty";
         listEl.textContent = "Couldn't load trainers: " + err.message;
