@@ -31,6 +31,14 @@
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .role-btn .arrow { margin-left: auto; color: #a9b3c2; }
 
+  .dev-credit { display: flex; align-items: flex-start; gap: 8px; margin-top: 28px;
+    max-width: 340px; opacity: .75; }
+  .dev-credit img { margin-top: 2px; flex-shrink: 0; }
+  .dev-credit-text { font-size: 10.5px; line-height: 1.5; color: #c4cede; }
+  .dev-credit-text strong { color: #fff; font-weight: 600; }
+  .dev-credit-text a { color: #c4cede; text-decoration: none; }
+  .dev-credit-text .copyright { color: #8a97b3; margin-top: 2px; }
+
   /* ===== fancy animations ===== */
   @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
   @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
@@ -83,6 +91,15 @@
     I'm a Trainer
     <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
   </a>
+
+  <div class="dev-credit">
+    <img src="icons/abode-mark.png" alt="Abode Digital Technology" width="22" height="16">
+    <div class="dev-credit-text">
+      <div>App Designed &amp; Developed by <strong>Abode Digital Technology</strong></div>
+      <div><a href="tel:9860046593">Mobile: 9860046593</a></div>
+      <div class="copyright">© 2026 Abode Digital Technology — All rights reserved</div>
+    </div>
+  </div>
 
   <script>
     if ('serviceWorker' in navigator) {
