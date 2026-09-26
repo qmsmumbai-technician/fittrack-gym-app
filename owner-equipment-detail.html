@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Equipment Detail</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+  header a { color: #142850; text-decoration: none; display: flex; align-items: center; gap: 14px; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 100px; max-width: 480px; margin: 0 auto; }
+
+  .card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .card-title { font-family: 'Barlow Condensed'; font-weight: 600; font-size: 14px; color: #6b7688;
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .kv-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 5px 0; }
+  .kv-row span:first-child { color: #6b7688; }
+  .status-pills { display: flex; gap: 8px; margin-top: 4px; }
+  .status-pill { flex: 1; text-align: center; border-radius: 10px; padding: 10px; font-size: 12.5px;
+    font-weight: 600; cursor: pointer; border: 1.5px solid #dfe4ec; background: #fff; color: #6b7688; }
+  .status-pill.selected.working { background: #2e9c5a; color: #fff; border-color: #2e9c5a; }
+  .status-pill.selected.under_repair { background: #c9862c; color: #fff; border-color: #c9862c; }
+  .status-pill.selected.retired { background: #6b7688; color: #fff; border-color: #6b7688; }
+
+  .log-row { padding: 10px 0; border-bottom: 1px solid #f2f4f8; }
+  .log-row:last-child { border-bottom: none; }
+  .log-issue { font-weight: 500; font-size: 13.5px; }
+  .log-meta { font-size: 11.5px; color: #6b7688; margin-top: 2px; }
+  .empty-note { font-size: 12.5px; color: #a9b3c2; font-style: italic; }
+
+  .log-repair-btn { width: 100%; background: #142850; color: #fff; border: none; border-radius: 10px;
+    padding: 12px; font-family: 'Barlow'; font-weight: 600; font-size: 13.5px; margin-top: 10px; cursor: pointer; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    align-items: flex-end; justify-content: center; z-index: 10; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 480px;
+    max-height: calc(var(--real-vh, 1vh) * 85); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal h2 { font-family: 'Barlow Condensed'; font-size: 20px; margin: 0 0 6px; }
+  .modal label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 12px; }
+  .modal input, .modal textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 12px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 14.5px; outline: none; font-family: 'Barlow'; }
+  .modal textarea { height: 60px; resize: none; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { flex: 1; border-radius: 10px; padding: 13px; font-family: 'Barlow';
+    font-weight: 600; font-size: 14px; border: none; cursor: pointer; }
+  .btn-cancel { background: #eef1f6; color: #142850; }
+  .btn-save { background: #f5871f; color: #fff; }
+  .modal .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; }
+  .loading { text-align: center; color: #6b7688; padding: 40px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease;
+  animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <a id="backLink" href="owner-equipment-list.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      <div class="title" id="eqName">Loading...</div>
+    </a>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading">Loading equipment...</div>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Log a Repair</h2>
+
+      <label>ISSUE</label>
+      <textarea id="mIssue" placeholder="What went wrong?"></textarea>
+
+      <label>ACTION TAKEN</label>
+      <input id="mAction" placeholder="What was done to fix it">
+
+      <label>COST (₹)</label>
+      <input id="mCost" type="number" placeholder="Repair cost, if any">
+
+      <label>SERVICED BY</label>
+      <input id="mServicedBy" placeholder="Technician / company name">
+
+      <div class="error" id="modalError"></div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="cancelBtn">Cancel</button>
+        <button class="btn-save" id="saveLogBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getEquipment, getMaintenanceLog, logMaintenance, updateEquipmentStatus, getWarrantyStatus } from "./js/equipment-service.js?v=1";
+
+    // Real viewport height for the modal (vh doesn't shrink with keyboard on Android)
+    function setRealVH() {
+      const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--real-vh', (h * 0.01) + 'px');
+    }
+    setRealVH();
+    window.addEventListener('resize', setRealVH);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
+
+    const params = new URLSearchParams(window.location.search);
+    const equipmentId = params.get("equipmentId");
+    document.getElementById("backLink").href = "owner-equipment-list.html";
+
+    function fmtDate(ts) {
+      if (!ts) return "—";
+      return ts.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    let equipment = null;
+
+    async function loadAndRender() {
+      try {
+        equipment = await getEquipment(equipmentId);
+        if (!equipment) {
+          document.getElementById("mainContent").innerHTML = "<p style='padding:40px;text-align:center;'>Equipment not found.</p>";
+          return;
+        }
+        document.getElementById("eqName").textContent = equipment.name;
+
+        const { status: wStatus, daysLeft } = getWarrantyStatus(equipment);
+        const log = await getMaintenanceLog(equipmentId);
+
+        let html = `
+          <div class="card">
+            <div class="card-title">DETAILS</div>
+            <div class="kv-row"><span>Category</span><span>${equipment.category || "—"}</span></div>
+            <div class="kv-row"><span>Supplier</span><span>${equipment.supplierName || "—"}</span></div>
+            <div class="kv-row"><span>Contact</span><span>${equipment.supplierContact || "—"}</span></div>
+            <div class="kv-row"><span>Purchased</span><span>${fmtDate(equipment.purchaseDate)}</span></div>
+            <div class="kv-row"><span>Price</span><span>${equipment.purchasePrice ? '₹' + equipment.purchasePrice.toLocaleString('en-IN') : '—'}</span></div>
+            <div class="kv-row"><span>Warranty</span><span>${fmtDate(equipment.warrantyExpiry)}${wStatus === 'expiring' ? ` (${daysLeft}d left)` : wStatus === 'expired' ? ' (expired)' : ''}</span></div>
+            ${equipment.notes ? `<div class="kv-row"><span>Notes</span><span>${equipment.notes}</span></div>` : ''}
+          </div>
+
+          <div class="card">
+            <div class="card-title">STATUS</div>
+            <div class="status-pills" id="statusPills">
+              <div class="status-pill working ${equipment.status === 'working' ? 'selected' : ''}" data-val="working">Working</div>
+              <div class="status-pill under_repair ${equipment.status === 'under_repair' ? 'selected' : ''}" data-val="under_repair">Under Repair</div>
+              <div class="status-pill retired ${equipment.status === 'retired' ? 'selected' : ''}" data-val="retired">Retired</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">MAINTENANCE HISTORY</div>
+            <div id="logList">
+        `;
+        if (log.length === 0) {
+          html += `<div class="empty-note">No repairs logged yet.</div>`;
+        } else {
+          log.forEach(l => {
+            html += `
+              <div class="log-row">
+                <div class="log-issue">${l.issue}</div>
+                <div class="log-meta">${fmtDate(l.date)}${l.actionTaken ? ' · ' + l.actionTaken : ''}${l.cost ? ' · ₹' + l.cost.toLocaleString('en-IN') : ''}${l.servicedBy ? ' · ' + l.servicedBy : ''}</div>
+              </div>
+            `;
+          });
+        }
+        html += `</div>
+            <button class="log-repair-btn" id="openModalBtn">+ Log a Repair</button>
+          </div>
+        `;
+
+        document.getElementById("mainContent").innerHTML = html;
+
+        document.getElementById("statusPills").addEventListener("click", async (e) => {
+          const pill = e.target.closest(".status-pill");
+          if (!pill) return;
+          const newStatus = pill.dataset.val;
+          try {
+            await updateEquipmentStatus(equipmentId, newStatus);
+            loadAndRender();
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        });
+
+        document.getElementById("openModalBtn").addEventListener("click", () => {
+          document.getElementById("modalError").style.display = "none";
+          document.getElementById("modalOverlay").classList.add("open");
+        });
+      } catch (err) {
+        document.getElementById("mainContent").innerHTML = `<p style='padding:40px;text-align:center;color:#c1443c;'>Error: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById("cancelBtn").addEventListener("click", () => {
+      document.getElementById("modalOverlay").classList.remove("open");
+    });
+
+    document.getElementById("saveLogBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("modalError");
+      const saveBtn = document.getElementById("saveLogBtn");
+      const issue = document.getElementById("mIssue").value.trim();
+
+      if (!issue) {
+        errorEl.textContent = "Please describe the issue.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      try {
+        await logMaintenance(equipmentId, {
+          issue,
+          actionTaken: document.getElementById("mAction").value.trim(),
+          cost: Number(document.getElementById("mCost").value) || null,
+          servicedBy: document.getElementById("mServicedBy").value.trim()
+        });
+        document.getElementById("modalOverlay").classList.remove("open");
+        document.getElementById("mIssue").value = "";
+        document.getElementById("mAction").value = "";
+        document.getElementById("mCost").value = "";
+        document.getElementById("mServicedBy").value = "";
+        await loadAndRender();
+      } catch (err) {
+        errorEl.textContent = "Error: " + err.message;
+        errorEl.style.display = "block";
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+        return;
+      }
+      if (equipmentId) loadAndRender();
+    });
+  </script>
+
+</body>
+</html>

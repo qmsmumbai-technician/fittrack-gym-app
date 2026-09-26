@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Add Equipment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a { color: #142850; text-decoration: none; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
+
+  label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 16px; }
+  input, textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
+  textarea { height: 70px; resize: none; }
+  .row-2 { display: flex; gap: 12px; }
+  .row-2 > div { flex: 1; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #f5871f; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease;
+  animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="owner-equipment-list.html" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="title">Add Equipment</div>
+  </header>
+
+  <main>
+    <label>EQUIPMENT NAME</label>
+    <input id="eqName" placeholder="e.g. Treadmill — Life Fitness T3">
+
+    <label>CATEGORY</label>
+    <input id="eqCategory" placeholder="e.g. Cardio, Strength, Free Weights">
+
+    <label>SUPPLIER NAME</label>
+    <input id="supplierName" placeholder="Vendor / dealer name">
+
+    <label>SUPPLIER CONTACT</label>
+    <input id="supplierContact" placeholder="Phone or email">
+
+    <div class="row-2">
+      <div>
+        <label>PURCHASE DATE</label>
+        <input id="purchaseDate" type="date">
+      </div>
+      <div>
+        <label>PURCHASE PRICE (₹)</label>
+        <input id="purchasePrice" type="number" placeholder="Amount">
+      </div>
+    </div>
+
+    <label>WARRANTY EXPIRY</label>
+    <input id="warrantyExpiry" type="date">
+
+    <label>NOTES</label>
+    <textarea id="notes" placeholder="Serial number, location in gym, etc."></textarea>
+
+    <div class="error" id="formError"></div>
+  </main>
+
+  <div class="bottom-bar">
+    <button class="primary" id="saveBtn">Save Equipment</button>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { addEquipment } from "./js/equipment-service.js?v=1";
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("formError");
+      const btn = document.getElementById("saveBtn");
+      errorEl.style.display = "none";
+
+      const name = document.getElementById("eqName").value.trim();
+      const category = document.getElementById("eqCategory").value.trim();
+      if (!name) {
+        errorEl.textContent = "Please enter the equipment name.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        await addEquipment({
+          name, category,
+          supplierName: document.getElementById("supplierName").value.trim(),
+          supplierContact: document.getElementById("supplierContact").value.trim(),
+          purchaseDate: document.getElementById("purchaseDate").value,
+          purchasePrice: Number(document.getElementById("purchasePrice").value) || null,
+          warrantyExpiry: document.getElementById("warrantyExpiry").value,
+          notes: document.getElementById("notes").value.trim()
+        });
+        window.location.href = "owner-equipment-list.html";
+      } catch (err) {
+        errorEl.textContent = "Error: " + err.message;
+        errorEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Save Equipment";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Equipment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a { color: #142850; text-decoration: none; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 100px; max-width: 480px; margin: 0 auto; position: relative; min-height: 200px; }
+
+  .eq-row { background: #fff; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center;
+    gap: 12px; margin-bottom: 10px; text-decoration: none; color: inherit; }
+  .eq-icon { width: 42px; height: 42px; border-radius: 10px; background: #eef1f6; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; }
+  .eq-name { font-weight: 500; font-size: 14.5px; }
+  .eq-meta { font-size: 11.5px; color: #6b7688; margin-top: 1px; }
+  .badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; margin-left: auto; }
+  .badge.working { color: #2e9c5a; background: #e5f3ec; }
+  .badge.under_repair { color: #c9862c; background: #fdf1de; }
+  .badge.retired { color: #6b7688; background: #eef1f6; }
+  .warranty-flag { font-size: 10px; color: #c1443c; margin-top: 2px; }
+  .loading, .empty { text-align: center; color: #6b7688; font-size: 14px; padding: 30px 0; }
+  .spinner { width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .fab { text-decoration: none; position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px;
+    border-radius: 50%; background: #f5871f; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px rgba(245,135,31,.4); }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease;
+  animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="owner-dashboard.html" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="title">Equipment</div>
+  </header>
+
+  <main>
+    <div id="eqList" class="loading"><div class="spinner"></div>Loading equipment...</div>
+    <a class="fab" href="owner-equipment-add.html" aria-label="Add equipment">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getAllEquipment, getWarrantyStatus } from "./js/equipment-service.js?v=1";
+
+    function statusLabel(status) {
+      return status === "under_repair" ? "Under Repair" : status === "retired" ? "Retired" : "Working";
+    }
+
+    function renderList(items) {
+      const listEl = document.getElementById("eqList");
+      if (items.length === 0) {
+        listEl.className = "empty";
+        listEl.textContent = "No equipment added yet — tap + to add your first item.";
+        return;
+      }
+      listEl.className = "";
+      listEl.innerHTML = "";
+      items.forEach(eq => {
+        const { status: wStatus, daysLeft } = getWarrantyStatus(eq);
+        const row = document.createElement("a");
+        row.href = `owner-equipment-detail.html?equipmentId=${eq.id}`;
+        row.className = "eq-row";
+        row.innerHTML = `
+          <div class="eq-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11v11h-11z"/><path d="M2 9.5h2M2 14.5h2M20 9.5h2M20 14.5h2"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div class="eq-name">${eq.name}</div>
+            <div class="eq-meta">${eq.category || ""}${eq.supplierName ? ' · ' + eq.supplierName : ''}</div>
+            ${wStatus === "expiring" ? `<div class="warranty-flag">⚠ Warranty expires in ${daysLeft}d</div>` : ""}
+            ${wStatus === "expired" ? `<div class="warranty-flag">⚠ Warranty expired</div>` : ""}
+          </div>
+          <div class="badge ${eq.status}">${statusLabel(eq.status)}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    watchAuthState(async (session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+        return;
+      }
+      try {
+        const items = await getAllEquipment();
+        renderList(items);
+      } catch (err) {
+        document.getElementById("eqList").textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
