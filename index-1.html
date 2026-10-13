@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Gym</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#142850">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(13,27,51,.15) 0%, rgba(13,27,51,.55) 45%, #0d1b33 78%),
+      url('icons/hero-gym.jpg');
+    background-size: cover;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    font-family: 'Barlow', system-ui, sans-serif; color: #fff; padding: 0 32px 48px;
+  }
+  .logo { width: 72px; height: 72px; border-radius: 18px; background: #f5871f;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  h1 { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 28px; margin: 0; }
+  .sub { font-size: 13px; color: #9db0cf; margin-top: 4px; margin-bottom: 40px; }
+  .role-btn { width: 100%; max-width: 340px; background: #fff; color: #142850; border: none;
+    border-radius: 14px; padding: 18px 20px; font-family: 'Barlow'; font-weight: 600; font-size: 16px;
+    margin-bottom: 14px; text-decoration: none; display: flex; align-items: center; gap: 14px; }
+  .role-btn .icon-box { width: 40px; height: 40px; border-radius: 10px; background: #eef1f6;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .role-btn .arrow { margin-left: auto; color: #a9b3c2; }
+
+  .dev-credit { display: flex; align-items: flex-start; gap: 8px; margin-top: 28px;
+    max-width: 340px; opacity: .75; }
+  .dev-credit img { margin-top: 2px; flex-shrink: 0; }
+  .dev-credit-text { font-size: 10.5px; line-height: 1.5; color: #c4cede; }
+  .dev-credit-text strong { color: #fff; font-weight: 600; }
+  .dev-credit-text a { color: #c4cede; text-decoration: none; }
+  .dev-credit-text .copyright { color: #8a97b3; margin-top: 2px; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
+  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
+  body { animation: fadeInUp .4s ease; animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
+    transform: scale(.96);
+  }
+  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
+    transform: scale(.97);
+  }
+  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
+    animation: popIn .28s ease;
+  }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner {
+    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
+  }
+  .logo, .avatar:first-child { animation: popIn .5s ease; }
+
+</style>
+</head>
+<body>
+
+  <h1>FitTrack Gym</h1>
+  <div class="sub">Choose how you're signing in</div>
+
+  <a class="role-btn" href="owner-login.html">
+    <div class="icon-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11v11h-11z"/><path d="M2 9.5h2M2 14.5h2M20 9.5h2M20 14.5h2"/></svg>
+    </div>
+    I'm the Gym Owner
+    <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </a>
+
+  <a class="role-btn" href="trainer-login.html">
+    <div class="icon-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    </div>
+    I'm a Trainer
+    <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </a>
+
+  <div class="dev-credit">
+    <img src="icons/abode-mark.png" alt="Abode Digital Technology" width="22" height="16">
+    <div class="dev-credit-text">
+      <div>App Designed &amp; Developed by <strong>Abode Digital Technology</strong></div>
+      <div><a href="tel:9860046593">Mobile: 9860046593</a></div>
+      <div class="copyright">© 2026 Abode Digital Technology — All rights reserved</div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
+  </script>
+
+</body>
+</html>
