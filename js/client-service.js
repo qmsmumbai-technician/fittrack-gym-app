@@ -21,9 +21,14 @@ import {
 
 // Add a new client — owner flow: purpose → plan → finalize.
 // planDurationDays is used to compute expiryDate from joiningDate.
+// isDemo/dateOfBirth/anniversaryDate are optional — the Add Client form
+// doesn't collect them yet, so they default safely until that form is
+// extended. Kept as explicit false/null (never undefined) because
+// Firestore rejects undefined field values on write.
 export async function addClient({
   name, phone, purpose, planName, planPrice, planDurationDays,
-  joiningDate, sessionTimePref, assignedTrainerId
+  joiningDate, sessionTimePref, assignedTrainerId,
+  isDemo = false, dateOfBirth = null, anniversaryDate = null
 }) {
   const expiry = new Date(joiningDate);
   expiry.setDate(expiry.getDate() + planDurationDays);
@@ -34,6 +39,9 @@ export async function addClient({
     expiryDate: Timestamp.fromDate(expiry),
     sessionTimePref,
     assignedTrainerId,
+    isDemo,
+    dateOfBirth: dateOfBirth ? Timestamp.fromDate(new Date(dateOfBirth)) : null,
+    anniversaryDate: anniversaryDate ? Timestamp.fromDate(new Date(anniversaryDate)) : null,
     createdAt: serverTimestamp()
   });
   return ref.id;
