@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Enquiries</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a { color: #142850; text-decoration: none; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; flex: 1; }
+  .add-btn { margin-left: auto; color: #142850; }
+  main { padding: 8px 24px 40px; max-width: 480px; margin: 0 auto; }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .filter-pill { flex: 1; text-align: center; background: #fff; border: 1.5px solid #dfe4ec; border-radius: 10px;
+    padding: 9px 0; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .filter-pill.selected { background: #142850; color: #fff; border-color: #142850; }
+
+  .enq-card { background: #fff; border: 1.5px solid #e2e6ee; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .enq-card.today { border-color: #2b6fd1; }
+  .enq-top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .enq-name { font-weight: 600; font-size: 15px; }
+  .enq-phone { font-size: 12px; color: #6b7688; margin-top: 1px; }
+  .enq-interest { font-size: 13px; color: #142850; margin-top: 6px; }
+  .enq-note { font-size: 12px; color: #6b7688; margin-top: 4px; }
+  .enq-followup { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .fu-today { color: #2b6fd1; background: #e3f0fb; }
+  .fu-past { color: #c1443c; background: #fbe4e2; }
+  .fu-future { color: #6b7688; background: #eef1f6; }
+  .fu-none { color: #6b7688; background: #eef1f6; }
+  .status-badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; display: inline-block; margin-top: 8px; }
+  .status-open { color: #c9862c; background: #fdf1de; }
+  .status-converted { color: #2e9c5a; background: #e5f3ec; }
+  .status-lost { color: #6b7688; background: #eef1f6; }
+
+  .enq-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .enq-actions a, .enq-actions button { flex: 1; text-align: center; border-radius: 9px; padding: 9px 0;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; border: none; font-family: 'Barlow'; }
+  .btn-whatsapp { background: #e5f3ec; color: #2e9c5a; }
+  .btn-converted { background: #eef1f6; color: #142850; }
+  .btn-lost { background: #fbe4e2; color: #c1443c; }
+
+  .empty-note { text-align: center; color: #6b7688; font-size: 14px; padding: 40px 0; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  body { animation: fadeInUp .4s ease; animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, .filter-pill, .enq-actions a, .enq-actions button { transition: transform .12s ease, box-shadow .12s ease; }
+  button:active, .filter-pill:active, .enq-actions a:active, .enq-actions button:active { transform: scale(.96); }
+  .filter-pill.selected { animation: popIn .28s ease; }
+  .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
+  .spinner { width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="owner-dashboard.html" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="title">Enquiries</div>
+    <a class="add-btn" href="owner-enquiry-add.html" aria-label="Add enquiry">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    </a>
+  </header>
+
+  <main>
+    <div class="filter-row" id="filterRow">
+      <div class="filter-pill selected" data-filter="today">Today</div>
+      <div class="filter-pill" data-filter="open">All Open</div>
+      <div class="filter-pill" data-filter="all">All</div>
+    </div>
+
+    <div id="enquiryList"><div class="spinner"></div></div>
+  </main>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { getAllEnquiries, setEnquiryStatus, filterTodayFollowUps } from "./js/enquiry-service.js?v=1";
+
+    let enquiries = [];
+    let filter = "today";
+
+    function isSameDay(a, b) {
+      return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function followUpBadge(e) {
+      if (!e.followUpDate) return { cls: "fu-none", text: "No follow-up date" };
+      const d = e.followUpDate.toDate();
+      const today = new Date();
+      const dLabel = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+      if (isSameDay(d, today)) return { cls: "fu-today", text: "Today" };
+      if (d < today) return { cls: "fu-past", text: "Overdue — " + dLabel };
+      return { cls: "fu-future", text: dLabel };
+    }
+
+    function render() {
+      const el = document.getElementById("enquiryList");
+      let list = enquiries;
+      if (filter === "today") list = filterTodayFollowUps(enquiries);
+      else if (filter === "open") list = enquiries.filter(e => e.status === "open");
+
+      if (list.length === 0) {
+        el.innerHTML = `<div class="empty-note">${
+          filter === "today" ? "No follow-ups due today." : "No enquiries here yet."
+        }</div>`;
+        return;
+      }
+
+      el.innerHTML = "";
+      list.forEach((e, i) => {
+        const fu = followUpBadge(e);
+        const phoneDigits = (e.phone || "").replace(/\D/g, "");
+        const message = `Hi ${e.name}, this is FitTrack Gym following up on your enquiry${e.interest ? " about " + e.interest : ""}. Would you like to visit us or join?`;
+        const waLink = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
+
+        const card = document.createElement("div");
+        card.className = "enq-card anim-row" + (fu.cls === "fu-today" ? " today" : "");
+        card.style.animationDelay = (i * 0.03) + "s";
+        card.innerHTML = `
+          <div class="enq-top">
+            <div>
+              <div class="enq-name">${e.name}</div>
+              <div class="enq-phone">${e.phone || "no phone on file"}</div>
+            </div>
+            <div class="enq-followup ${fu.cls}">${fu.text}</div>
+          </div>
+          ${e.interest ? `<div class="enq-interest">${e.interest}</div>` : ""}
+          ${e.note ? `<div class="enq-note">${e.note}</div>` : ""}
+          <div class="status-badge status-${e.status}">${e.status.toUpperCase()}</div>
+          ${e.status === "open" ? `
+            <div class="enq-actions">
+              <a class="btn-whatsapp" href="${waLink}" target="_blank" rel="noopener">WhatsApp</a>
+              <button class="btn-converted" data-id="${e.id}" data-action="converted">Converted</button>
+              <button class="btn-lost" data-id="${e.id}" data-action="lost">Lost</button>
+            </div>
+          ` : ""}
+        `;
+        el.appendChild(card);
+      });
+    }
+
+    document.getElementById("enquiryList").addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      btn.disabled = true;
+      try {
+        await setEnquiryStatus(btn.dataset.id, btn.dataset.action);
+        const item = enquiries.find(x => x.id === btn.dataset.id);
+        if (item) item.status = btn.dataset.action;
+        render();
+      } catch (err) {
+        alert("Error updating enquiry: " + err.message);
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("filterRow").addEventListener("click", (e) => {
+      const pill = e.target.closest(".filter-pill");
+      if (!pill) return;
+      document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("selected"));
+      pill.classList.add("selected");
+      filter = pill.dataset.filter;
+      render();
+    });
+
+    async function load() {
+      const el = document.getElementById("enquiryList");
+      try {
+        enquiries = await getAllEnquiries();
+        render();
+      } catch (err) {
+        el.innerHTML = `<div class="empty-note">Error loading enquiries: ${err.message}</div>`;
+      }
+    }
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+        return;
+      }
+      load();
+    });
+  </script>
+
+</body>
+</html>

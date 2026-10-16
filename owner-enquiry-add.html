@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitTrack Owner — Add Enquiry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7fa; font-family: 'Barlow', system-ui, sans-serif; color: #142850; }
+  header { padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  header a { color: #142850; text-decoration: none; display: flex; }
+  .title { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 20px; }
+  main { padding: 8px 24px 110px; max-width: 480px; margin: 0 auto; }
+
+  label { font-size: 12.5px; font-weight: 600; color: #6b7688; display: block; margin-top: 16px; }
+  input, textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 13px 14px;
+    border-radius: 10px; border: 1.5px solid #dfe4ec; font-size: 15px; outline: none; font-family: 'Barlow'; }
+  textarea { height: 60px; resize: none; }
+
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16px 24px 12px;
+    border-top: 1px solid #eef1f6; max-width: 480px; margin: 0 auto; }
+  button.primary { width: 100%; background: #142850; color: #fff; border: none; border-radius: 12px;
+    padding: 15px; font-family: 'Barlow'; font-weight: 600; font-size: 15.5px; cursor: pointer; }
+  button.primary:disabled { opacity: .6; }
+  .error { color: #c1443c; font-size: 12.5px; margin-top: 10px; display: none; text-align: center; }
+
+  /* ===== fancy animations ===== */
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  body { animation: fadeInUp .4s ease; animation-fill-mode: none; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button, a.primary, button.primary { transition: transform .12s ease, box-shadow .12s ease; }
+  button:active, a.primary:active, button.primary:active { transform: scale(.96); }
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="owner-enquiry-list.html" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </a>
+    <div class="title">Add Enquiry</div>
+  </header>
+
+  <main>
+    <label>NAME</label>
+    <input id="eName" placeholder="Full name">
+
+    <label>MOBILE NUMBER</label>
+    <input id="ePhone" placeholder="10-digit mobile number">
+
+    <label>INTERESTED IN</label>
+    <input id="eInterest" placeholder="e.g. Weight loss, 3-month plan, personal training">
+
+    <label>FOLLOW UP ON</label>
+    <input id="eFollowUp" type="date">
+
+    <label>NOTE</label>
+    <textarea id="eNote" placeholder="How they heard about the gym, what they asked, etc."></textarea>
+
+    <div class="error" id="formError"></div>
+  </main>
+
+  <div class="bottom-bar">
+    <button class="primary" id="saveBtn">Save Enquiry</button>
+  </div>
+
+  <script type="module">
+    import { watchAuthState } from "./js/auth-service.js?v=2";
+    import { addEnquiry } from "./js/enquiry-service.js?v=1";
+
+    document.getElementById("eFollowUp").value = new Date().toISOString().split("T")[0];
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const errorEl = document.getElementById("formError");
+      const btn = document.getElementById("saveBtn");
+      errorEl.style.display = "none";
+
+      const name = document.getElementById("eName").value.trim();
+      const phone = document.getElementById("ePhone").value.trim();
+      if (!name || !phone) {
+        errorEl.textContent = "Please enter the name and phone number.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        await addEnquiry({
+          name, phone,
+          interest: document.getElementById("eInterest").value.trim(),
+          followUpDate: document.getElementById("eFollowUp").value,
+          note: document.getElementById("eNote").value.trim()
+        });
+        window.location.href = "owner-enquiry-list.html";
+      } catch (err) {
+        errorEl.textContent = "Error: " + err.message;
+        errorEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Save Enquiry";
+      }
+    });
+
+    watchAuthState((session) => {
+      if (!session) { window.location.href = "owner-login.html"; return; }
+      if (session.role !== "owner") {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;'>Owner access only.</p>";
+      }
+    });
+  </script>
+
+</body>
+</html>
