@@ -13,6 +13,7 @@ import { getAllClients, getClientStatus, getPayments, getAllTrainers } from "./c
 import { getTodayAttendance } from "./trainer-service.js?v=2";
 import { getAllEquipment } from "./equipment-service.js?v=2";
 import { getAllExpenses } from "./expense-service.js?v=2";
+import { getAllEnquiries, filterTodayFollowUps } from "./enquiry-service.js?v=1";
 
 function isSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -23,11 +24,12 @@ function isSameMonthDay(a, b) {
 }
 
 export async function getDashboardStats() {
-  const [clients, trainers, equipment, expenses] = await Promise.all([
+  const [clients, trainers, equipment, expenses, enquiries] = await Promise.all([
     getAllClients(),
     getAllTrainers(),
     getAllEquipment(),
-    getAllExpenses()
+    getAllExpenses(),
+    getAllEnquiries()
   ]);
 
   const today = new Date();
@@ -76,6 +78,8 @@ export async function getDashboardStats() {
   const activeTrainers = trainers.filter(t => t.active).length;
   const equipmentAttention = equipment.filter(e => e.status && e.status !== "working").length;
   const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const openEnquiries = enquiries.filter(e => e.status === "open").length;
+  const followUpsToday = filterTodayFollowUps(enquiries).length;
 
   return {
     live, total: clients.length, expired,
@@ -84,6 +88,7 @@ export async function getDashboardStats() {
     todaysCollection, totalCollection,
     totalExpense, balance: totalCollection - totalExpense,
     todaysAttendance, activeTrainers, equipmentAttention,
-    birthdayToday, anniversaryToday
+    birthdayToday, anniversaryToday,
+    openEnquiries, followUpsToday
   };
 }
