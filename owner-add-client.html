@@ -156,6 +156,23 @@
       <label>ASSIGN TRAINER</label>
       <div id="trainerOptions"><div class="empty-note">Loading trainers...</div></div>
 
+      <label>DEMO / TRIAL CLIENT?</label>
+      <div class="pill-row">
+        <div class="pill" data-demo="yes">Yes, demo</div>
+        <div class="pill selected" data-demo="no">No, regular</div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>DATE OF BIRTH <span style="font-weight:400;">(optional)</span></label>
+          <input id="cDob" type="date">
+        </div>
+        <div>
+          <label>ANNIVERSARY <span style="font-weight:400;">(optional)</span></label>
+          <input id="cAnniversary" type="date">
+        </div>
+      </div>
+
       <div class="error" id="finalError"></div>
     </div>
 
@@ -190,7 +207,8 @@
       joiningDate: new Date().toISOString().split("T")[0],
       sessionTimePref: "morning",
       payAmount: "", paymentMethod: "cash",
-      trainerId: null
+      trainerId: null,
+      isDemo: false, dateOfBirth: "", anniversaryDate: ""
     };
     let trainers = [];
     let currentStep = 1;
@@ -247,6 +265,7 @@
         pill.classList.add("selected");
         if (pill.dataset.val) state.sessionTimePref = pill.dataset.val;
         if (pill.dataset.method) state.paymentMethod = pill.dataset.method;
+        if (pill.dataset.demo) state.isDemo = pill.dataset.demo === "yes";
       });
     });
 
@@ -342,6 +361,8 @@
 
       // Step 3 — save to Firestore
       state.payAmount = document.getElementById("payAmount").value;
+      state.dateOfBirth = document.getElementById("cDob").value;
+      state.anniversaryDate = document.getElementById("cAnniversary").value;
       if (!state.trainerId) {
         errorEl.textContent = "Please select a trainer to assign.";
         errorEl.style.display = "block";
@@ -367,7 +388,10 @@
           planDurationDays: state.plan.days,
           joiningDate: state.joiningDate,
           sessionTimePref: state.sessionTimePref,
-          assignedTrainerId: state.trainerId
+          assignedTrainerId: state.trainerId,
+          isDemo: state.isDemo,
+          dateOfBirth: state.dateOfBirth || null,
+          anniversaryDate: state.anniversaryDate || null
         });
 
         await logPayment(clientId, {
