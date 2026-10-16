@@ -111,10 +111,32 @@
   </main>
 
   <script type="module">
-    import { auth } from "./js/firebase-config.js?v=2";
-    import { watchAuthState, logout } from "./js/auth-service.js?v=2";
-    import { getAllClients, getClientStatus } from "./js/client-service.js?v=2";
-    import { getDashboardStats } from "./js/dashboard-service.js?v=2";
+    // Anything that goes wrong on this page — a failed import, a Firestore
+    // permission error, anything — gets printed directly into the page
+    // instead of leaving the spinners stuck forever with no clue why.
+    function showFatalError(where, err) {
+      console.error(where, err);
+      const msg = (err && err.message) ? err.message : String(err);
+      document.getElementById("ownerName").textContent = "Error: " + msg;
+      const grid = document.getElementById("statsGrid");
+      if (grid) grid.innerHTML = `<div style="grid-column:1/-1;background:#fdeceb;color:#c1443c;border-radius:12px;padding:14px;font-size:13px;">${where} failed:<br>${msg}</div>`;
+      const list = document.getElementById("clientList");
+      if (list) { list.className = ""; list.textContent = ""; }
+    }
+
+    window.addEventListener("error", (e) => showFatalError("Script error", e.error || e.message));
+    window.addEventListener("unhandledrejection", (e) => showFatalError("Unhandled error", e.reason));
+
+    let auth, watchAuthState, logout, getAllClients, getClientStatus, getDashboardStats;
+    try {
+      ({ auth } = await import("./js/firebase-config.js?v=2"));
+      ({ watchAuthState, logout } = await import("./js/auth-service.js?v=2"));
+      ({ getAllClients, getClientStatus } = await import("./js/client-service.js?v=2"));
+      ({ getDashboardStats } = await import("./js/dashboard-service.js?v=2"));
+    } catch (err) {
+      showFatalError("Loading app modules", err);
+      throw err;
+    }
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await logout();
@@ -246,8 +268,7 @@
         renderClients(clients);
         renderStats(stats);
       } catch (err) {
-        document.getElementById("clientList").textContent = "Couldn't load clients: " + err.message;
-        document.getElementById("statsGrid").textContent = "Couldn't load dashboard stats: " + err.message;
+        showFatalError("Loading dashboard data", err);
       }
     });
   </script>
