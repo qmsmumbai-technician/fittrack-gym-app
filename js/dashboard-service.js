@@ -9,8 +9,7 @@
 // maintains a single "stats" document on each payment write instead
 // of recomputing from scratch on every dashboard load.
 // ============================================
-import { getAllClients, getClientStatus, getPayments } from "./client-service.js?v=2";
-import { getAllTrainers } from "./trainer-service.js?v=2";
+import { getAllClients, getClientStatus, getPayments, getAllTrainers } from "./client-service.js?v=2";
 import { getTodayAttendance } from "./trainer-service.js?v=2";
 import { getAllEquipment } from "./equipment-service.js?v=2";
 import { getAllExpenses } from "./expense-service.js?v=2";
