@@ -14,10 +14,27 @@
   #logoutBtn { background: rgba(255,255,255,.1); color: #fff; border: none; border-radius: 8px;
     padding: 8px 14px; font-family: 'Barlow'; font-size: 12.5px; cursor: pointer; }
   main { padding: 20px 24px 40px; max-width: 480px; margin: 0 auto; }
-  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .card { background: #fff; border-radius: 14px; padding: 16px; }
-  .card .label { font-size: 12px; color: #6b7688; }
-  .card .value { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 28px; margin-top: 4px; }
+
+  .quick-actions { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px; }
+  .quick-actions a { text-decoration: none; color: #142850; background: #fff; border-radius: 12px;
+    padding: 10px 14px; font-size: 12.5px; font-weight: 600; white-space: nowrap; display: flex;
+    align-items: center; gap: 6px; flex-shrink: 0; }
+  .quick-actions a svg { flex-shrink: 0; }
+
+  .tabs { display: flex; gap: 8px; background: #e9edf4; border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+  .tab { flex: 1; text-align: center; padding: 9px 0; border-radius: 9px; font-size: 13.5px; font-weight: 600;
+    color: #6b7688; cursor: pointer; }
+  .tab.active { background: #fff; color: #142850; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .card { background: #fff; border-radius: 12px; padding: 12px 10px; }
+  .card .icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center;
+    justify-content: center; margin-bottom: 7px; }
+  .card .label { font-size: 10px; color: #6b7688; line-height: 1.2; }
+  .card .value { font-family: 'Barlow Condensed'; font-weight: 700; font-size: 18px; margin-top: 2px; }
+  .card.warn { border: 1.3px solid #f0c46a; }
+  .card.alert { border: 1.3px solid #f0a89e; }
+
   .section-title { font-family: 'Barlow Condensed'; font-weight: 600; font-size: 16px; color: #6b7688;
     margin: 22px 0 10px; }
   .client-row { background: #fff; border-radius: 14px; padding: 12px 14px; display: flex;
@@ -32,34 +49,20 @@
   .badge.expiring { color: #c9862c; background: #fdf1de; }
   .badge.expired { color: #c1443c; background: #fbe4e2; }
   .empty, .loading { text-align: center; color: #6b7688; font-size: 14px; padding: 30px 0; }
+  .insights-empty { text-align: center; color: #6b7688; font-size: 13.5px; padding: 40px 20px; background: #fff;
+    border-radius: 14px; }
 
   /* ===== fancy animations ===== */
   @keyframes fadeInUp { from { opacity:0; transform:translateY(14px);} to {opacity:1; transform:translateY(0);} }
   @keyframes popIn { 0% { transform:scale(.92); opacity:0;} 60% { transform:scale(1.03); opacity:1;} 100% { transform:scale(1); opacity:1;} }
   @keyframes spin { to { transform:rotate(360deg); } }
-  @keyframes pulseGlow { 0%,100% { box-shadow:0 0 0 0 rgba(245,135,31,.5);} 50% { box-shadow:0 0 0 12px rgba(245,135,31,0);} }
-  @keyframes logoPulse { 0%,100% { transform:scale(1);} 50% { transform:scale(1.06);} }
   body { animation: fadeInUp .4s ease; animation-fill-mode: none; }
   button, a { -webkit-tap-highlight-color: transparent; }
-  button, a.primary, button.primary, .role-btn, a.whatsapp, button.whatsapp, .pill, .option-card, .plan-card, .day-row, .toggle, .trainer-card {
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  button:active, a.primary:active, button.primary:active, .role-btn:active, a.whatsapp:active, button.whatsapp:active {
-    transform: scale(.96);
-  }
-  .pill:active, .option-card:active, .plan-card:active, .trainer-card:active {
-    transform: scale(.97);
-  }
-  .option-card.selected, .plan-card.selected, .pill.selected, .trainer-card.selected {
-    animation: popIn .28s ease;
-  }
+  button, a.primary, button.primary, .role-btn, .quick-actions a { transition: transform .12s ease, box-shadow .12s ease; }
+  button:active, .quick-actions a:active { transform: scale(.96); }
   .anim-row { opacity: 0; animation: fadeInUp .4s ease forwards; }
-  .spinner {
-    width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
-    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px;
-  }
-  .logo, .avatar:first-child { animation: popIn .5s ease; }
-
+  .spinner { width: 34px; height: 34px; border: 3px solid #e2e6ee; border-top-color: #f5871f;
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
 </style>
 </head>
 <body>
@@ -73,34 +76,118 @@
   </header>
 
   <main>
-    <div style="margin-bottom: 16px; display: flex; gap: 16px; flex-wrap: wrap;">
-      <a href="owner-add-client.html" style="font-size: 13px; color: #f5871f; font-weight: 600; text-decoration: none;">+ Add Client</a>
-      <a href="owner-trainers.html" style="font-size: 13px; color: #f5871f; font-weight: 600; text-decoration: none;">→ Manage Trainers</a>
-      <a href="owner-equipment-list.html" style="font-size: 13px; color: #f5871f; font-weight: 600; text-decoration: none;">→ Equipment</a>
-    </div>
-    <div class="stats">
-      <div class="card"><div class="label">Total Clients</div><div class="value" id="statTotal">–</div></div>
-      <div class="card"><div class="label">Active</div><div class="value" id="statActive">–</div></div>
-      <div class="card"><div class="label">Expiring Soon</div><div class="value" id="statExpiring">–</div></div>
-      <div class="card"><div class="label">Expired</div><div class="value" id="statExpired">–</div></div>
+    <div class="quick-actions">
+      <a href="owner-add-client.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add Client
+      </a>
+      <a href="owner-trainers.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        Trainers
+      </a>
+      <a href="owner-equipment-list.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#142850" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 4 9l4 4 2.5-2.5"/><path d="M17.5 17.5 20 15l-4-4-2.5 2.5"/><path d="m8 16 8-8"/></svg>
+        Equipment
+      </a>
     </div>
 
-    <div class="section-title">ALL CLIENTS</div>
-    <div id="clientList" class="loading"><div class="spinner"></div>Loading clients...</div>
+    <div class="tabs">
+      <div class="tab active" id="tabDashboard">Dashboard</div>
+      <div class="tab" id="tabInsights">Insights</div>
+    </div>
+
+    <div id="dashboardPanel">
+      <div class="stats" id="statsGrid">
+        <div class="loading" style="grid-column:1/-1;"><div class="spinner"></div>Loading dashboard...</div>
+      </div>
+
+      <div class="section-title">ALL CLIENTS</div>
+      <div id="clientList" class="loading"><div class="spinner"></div>Loading clients...</div>
+    </div>
+
+    <div id="insightsPanel" style="display:none;">
+      <div class="insights-empty">Trends &amp; charts are coming in a future update — for now, the stat cards on the Dashboard tab cover collections, memberships and attendance at a glance.</div>
+    </div>
   </main>
 
   <script type="module">
     import { auth } from "./js/firebase-config.js?v=2";
     import { watchAuthState, logout } from "./js/auth-service.js?v=2";
     import { getAllClients, getClientStatus } from "./js/client-service.js?v=2";
+    import { getDashboardStats } from "./js/dashboard-service.js?v=2";
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await logout();
       window.location.href = "owner-login.html";
     });
 
+    document.getElementById("tabDashboard").addEventListener("click", () => switchTab("dashboard"));
+    document.getElementById("tabInsights").addEventListener("click", () => switchTab("insights"));
+
+    function switchTab(tab) {
+      document.getElementById("tabDashboard").classList.toggle("active", tab === "dashboard");
+      document.getElementById("tabInsights").classList.toggle("active", tab === "insights");
+      document.getElementById("dashboardPanel").style.display = tab === "dashboard" ? "" : "none";
+      document.getElementById("insightsPanel").style.display = tab === "insights" ? "" : "none";
+    }
+
     function initials(name) {
       return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    function money(n) {
+      return "₹" + Math.round(n || 0).toLocaleString("en-IN");
+    }
+
+    function cardHtml({ label, value, bg, stroke, path, flag }) {
+      return `
+        <div class="card ${flag || ""}">
+          <div class="icon" style="background:${bg}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>
+          </div>
+          <div class="label">${label}</div>
+          <div class="value" style="color:${stroke}">${value}</div>
+        </div>`;
+    }
+
+    function renderStats(s) {
+      const grid = document.getElementById("statsGrid");
+      grid.innerHTML = [
+        cardHtml({ label: "Live Memberships", value: s.live, bg: "#eefaf2", stroke: "#2e9c5a",
+          path: '<path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/>' }),
+        cardHtml({ label: "Total Memberships", value: s.total, bg: "#eef1f7", stroke: "#142850",
+          path: '<rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/>' }),
+        cardHtml({ label: "Expired Memberships", value: s.expired, bg: "#fdeceb", stroke: "#c1443c", flag: "alert",
+          path: '<circle cx="12" cy="12" r="9"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/>' }),
+        cardHtml({ label: "Expiring 1–3 days", value: s.exp1to3, bg: "#fdeceb", stroke: "#c1443c", flag: "alert",
+          path: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' }),
+        cardHtml({ label: "Expiring 4–7 days", value: s.exp4to7, bg: "#fdeee0", stroke: "#c9862c", flag: "warn",
+          path: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' }),
+        cardHtml({ label: "Expiring 8–15 days", value: s.exp8to15, bg: "#fdf6e0", stroke: "#c9a62c", flag: "warn",
+          path: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' }),
+        cardHtml({ label: "Demo Memberships", value: s.demo, bg: "#f3e3ff", stroke: "#8c4fd1",
+          path: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>' }),
+        cardHtml({ label: "Due Amount", value: money(s.dueTotal), bg: "#fdeee0", stroke: "#c9862c", flag: s.dueCount > 0 ? "warn" : "",
+          path: '<rect x="2" y="7" width="20" height="13" rx="2"/><path d="M2 10h20"/>' }),
+        cardHtml({ label: "Today's Collection", value: money(s.todaysCollection), bg: "#eefaf2", stroke: "#2e9c5a",
+          path: '<path d="M2 8h20v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><path d="M2 8l2.2-4h15.6L22 8"/><circle cx="12" cy="14" r="2.2"/>' }),
+        cardHtml({ label: "Total Collection", value: money(s.totalCollection), bg: "#eef1f7", stroke: "#142850",
+          path: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' }),
+        cardHtml({ label: "Total Expense", value: money(s.totalExpense), bg: "#fdeceb", stroke: "#c1443c",
+          path: '<path d="M3 17h18M3 17l5-6 4 3 6-8"/>' }),
+        cardHtml({ label: "Balance Sheet", value: money(s.balance), bg: s.balance >= 0 ? "#eefaf2" : "#fdeceb", stroke: s.balance >= 0 ? "#2e9c5a" : "#c1443c",
+          path: '<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/>' }),
+        cardHtml({ label: "Today's Attendance", value: s.todaysAttendance, bg: "#e3edfb", stroke: "#2b6fd1",
+          path: '<circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 8a3 3 0 1 0 0-6"/><path d="M18 13.2c2 .6 3.5 2.4 3.5 4.8"/>' }),
+        cardHtml({ label: "Active Trainers", value: s.activeTrainers, bg: "#efe9fb", stroke: "#6b46c1",
+          path: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="m9 8 1.5 1.5L14 6"/>' }),
+        cardHtml({ label: "Equipment Needing Attention", value: s.equipmentAttention, bg: "#fdeee0", stroke: "#f5871f", flag: s.equipmentAttention > 0 ? "warn" : "",
+          path: '<path d="M14.7 6.3a1 1 0 0 0 1.4 1.4l3.3-3.3a4 4 0 0 1-5.6 5.6L5 19.2A2 2 0 0 1 2.8 17L12 7.8a4 4 0 0 1 5.6-5.6z"/>' }),
+        cardHtml({ label: "Birthdays Today", value: s.birthdayToday, bg: "#e5f3ec", stroke: "#2e9c5a",
+          path: '<path d="M12 6c1-1 1-2.5 0-3.5M9 8v13h6V8a3 3 0 0 0-6 0z"/><path d="M4 13h16M4 21h16"/>' }),
+        cardHtml({ label: "Anniversaries Today", value: s.anniversaryToday, bg: "#fdeee0", stroke: "#d16b8c",
+          path: '<path d="M12 21s-7-4.3-9.3-8.6C1.2 9 2.7 6 5.8 6c1.7 0 3 1 3.2 2.2C9.2 7 10.5 6 12.2 6c3.1 0 4.6 3 3.1 6.4C13 17.3 12 21 12 21z"/>' })
+      ].join("");
     }
 
     function renderClients(clients) {
@@ -109,22 +196,14 @@
       if (clients.length === 0) {
         listEl.className = "empty";
         listEl.textContent = "No clients yet — add your first client to see them here.";
-        document.getElementById("statTotal").textContent = "0";
-        document.getElementById("statActive").textContent = "0";
-        document.getElementById("statExpiring").textContent = "0";
-        document.getElementById("statExpired").textContent = "0";
         return;
       }
 
-      let active = 0, expiring = 0, expired = 0;
       listEl.className = "";
       listEl.innerHTML = "";
 
       clients.forEach((client, i) => {
         const { status, daysLeft } = getClientStatus(client);
-        if (status === "active") active++;
-        else if (status === "expiring") expiring++;
-        else expired++;
 
         const badgeText = status === "expired" ? "Expired"
           : status === "expiring" ? `${daysLeft}d left`
@@ -148,11 +227,6 @@
         `;
         listEl.appendChild(row);
       });
-
-      document.getElementById("statTotal").textContent = clients.length;
-      document.getElementById("statActive").textContent = active;
-      document.getElementById("statExpiring").textContent = expiring;
-      document.getElementById("statExpired").textContent = expired;
     }
 
     watchAuthState(async (session) => {
@@ -168,10 +242,12 @@
       document.getElementById("ownerName").textContent = `Welcome, ${session.profile.name || "Owner"}`;
 
       try {
-        const clients = await getAllClients();
+        const [clients, stats] = await Promise.all([getAllClients(), getDashboardStats()]);
         renderClients(clients);
+        renderStats(stats);
       } catch (err) {
         document.getElementById("clientList").textContent = "Couldn't load clients: " + err.message;
+        document.getElementById("statsGrid").textContent = "Couldn't load dashboard stats: " + err.message;
       }
     });
   </script>
